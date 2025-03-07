@@ -1,16 +1,27 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
-import { PaymentStatus } from './entities/enums/enums';
 import { InjectRepository } from '@nestjs/typeorm';
+import { RedisService } from 'src/common/db/redis.service';
 import { User } from './entities/user.entity';
+import { otpGenerator } from 'src/common/utils/otp-generator';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRpository: Repository<User>,
+    private readonly redisService: RedisService,
   ) {}
+
+  async sendOtp(phone_number: string): Promise<{ message: string }> {
+    const otp = otpGenerator();
+    if (!phone_number) throw new BadRequestException('Incorrect Phone Number.');
+    await this.redisService.setOTP(`otp:${phone_number}`, otp);
+    return {
+      message: 'OTP Code sent successfully',
+    };
+  }
 
   async create(createUserDto: CreateUserDto) {
     const {
@@ -31,9 +42,15 @@ export class UsersService {
       liability_waiver,
       cancellation_policy,
       program_id,
-      payment_status,
-      payment_date,
+      otpCode,
     } = createUserDto;
+
+    const storedOTP = await this.redisService.getOTP(`otp:${phone_number}`);
+    if (!storedOTP) throw new BadRequestException('OTP expired or not found.');
+    else if (storedOTP !== otpCode)
+      throw new BadRequestException('Incorrect OTP');
+
+    await this.redisService.deleteOTP(`otp:${phone_number}`);
 
     const newUser = {
       fullname,
@@ -53,11 +70,9 @@ export class UsersService {
       liability_waiver,
       cancellation_policy,
       program_id,
-      payment_status: payment_status || PaymentStatus.FAILED,
-      payment_date,
     };
 
-    this.userRpository.create(newUser);
+    await this.userRpository.save(newUser);
     return newUser;
   }
 

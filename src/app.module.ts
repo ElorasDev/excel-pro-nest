@@ -13,6 +13,7 @@ dotenv.config({ path: '.env.local' });
   imports: [
     TypeOrmModule.forRoot(pool),
     ConfigModule.forRoot({
+      isGlobal: true,
       load: [redisConfig],
     }),
     PassportModule,
