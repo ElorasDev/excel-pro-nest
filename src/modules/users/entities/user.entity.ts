@@ -3,7 +3,9 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  JoinTable,
 } from 'typeorm';
+// import { Program } from './program.entity';
 import {
   Gender,
   SkillLevel,
@@ -81,8 +83,9 @@ export class User {
   @Column()
   cancellation_policy: boolean;
 
-  @Column()
-  program_id: number;
+  // @ManyToMany(() => Program, (program) => program.users)
+  @JoinTable()
+  programs: [];
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
