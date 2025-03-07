@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 
@@ -8,11 +8,24 @@ import { CreateUserDto } from './dto/create-user.dto';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post()
-  @ApiOperation({ summary: 'Register a new user' })
+  @Post('send-otp')
+  @ApiOperation({ summary: 'Send OTP code to phone number' })
+  @ApiResponse({ status: 200, description: 'OTP Code sent successfully' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: { phone_number: { type: 'string' } },
+    },
+  })
+  sendOtp(@Body('phone_number') phone_number: string) {
+    return this.usersService.sendOtp(phone_number);
+  }
+
+  @Post('register')
+  @ApiOperation({ summary: 'Register a new user after OTP verification' })
   @ApiResponse({ status: 201, description: 'User successfully created.' })
-  @ApiResponse({ status: 400, description: 'Invalid input data.' })
-  async register(@Body() createUserDto: CreateUserDto) {
+  @ApiResponse({ status: 400, description: 'Invalid input data or OTP error.' })
+  register(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
 

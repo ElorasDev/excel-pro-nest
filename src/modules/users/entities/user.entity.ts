@@ -1,11 +1,15 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+} from 'typeorm';
 import {
   Gender,
   SkillLevel,
   PlayerPosition,
   AvailableDays,
   PreferredTime,
-  PaymentStatus,
 } from './enums/enums';
 
 @Entity('user')
@@ -80,16 +84,6 @@ export class User {
   @Column()
   program_id: number;
 
-  @Column({ type: 'date' })
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
-
-  @Column({
-    type: 'enum',
-    enum: PaymentStatus,
-    nullable: true,
-  })
-  payment_status?: PaymentStatus;
-
-  @Column({ type: 'timestamp', nullable: true })
-  payment_date?: Date;
 }
