@@ -6,6 +6,7 @@ import { pool } from './common/db/postgresql.config';
 import redisConfig from './common/db/redis.config';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
+import { ProgramsModule } from './modules/programs/programs.module';
 import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env.local' });
@@ -19,6 +20,7 @@ dotenv.config({ path: '.env.local' });
     PassportModule,
     AuthModule,
     UsersModule,
+    ProgramsModule,
   ],
   controllers: [],
   providers: [],
