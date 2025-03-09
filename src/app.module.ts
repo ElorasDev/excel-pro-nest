@@ -1,7 +1,8 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PassportModule } from '@nestjs/passport';
+import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { pool } from './common/db/postgresql.config';
 import redisConfig from './common/db/redis.config';
 import { AuthModule } from './modules/auth/auth.module';
@@ -22,7 +23,9 @@ dotenv.config({ path: '.env.local' });
     UsersModule,
     ProgramsModule,
   ],
-  controllers: [],
-  providers: [],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggerMiddleware).forRoutes('*');
+  }
+}
