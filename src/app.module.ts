@@ -1,15 +1,28 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { PassportModule } from '@nestjs/passport';
-import { pool } from './common/db';
+import { pool } from './common/db/postgresql.config';
+import redisConfig from './common/db/redis.config';
+import { AuthModule } from './modules/auth/auth.module';
+import { UsersModule } from './modules/users/users.module';
+import { ProgramsModule } from './modules/programs/programs.module';
 import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env.local' });
 @Module({
-  imports: [TypeOrmModule.forRoot(pool), PassportModule],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [
+    TypeOrmModule.forRoot(pool),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [redisConfig],
+    }),
+    PassportModule,
+    AuthModule,
+    UsersModule,
+    ProgramsModule,
+  ],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

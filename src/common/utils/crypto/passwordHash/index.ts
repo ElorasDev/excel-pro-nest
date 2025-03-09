@@ -1,9 +1,9 @@
 import * as bcrypt from 'bcryptjs';
 
 /**
- * هش کردن رمز عبور
- * @param password رمز عبور ورودی
- * @returns رمز عبور هش شده
+ * Hash proccess
+ * @param password Entry Password
+ * @returns Hashed Password
  */
 export const hashPassword = async (password: string): Promise<string> => {
   const salt = await bcrypt.genSalt(10);
@@ -12,10 +12,10 @@ export const hashPassword = async (password: string): Promise<string> => {
 };
 
 /**
- * بررسی رمز عبور
- * @param password رمز عبور ورودی
- * @param hashedPassword رمز عبور هش شده
- * @returns نتیجه بررسی
+ * Checked Password
+ * @param password Entry Password
+ * @param hashedPassword Hashed Password
+ * @returns result
  */
 export const comparePassword = async (
   password: string,
