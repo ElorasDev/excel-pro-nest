@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   ManyToMany,
   JoinTable,
+  OneToMany,
 } from 'typeorm';
 import { Program } from '../../programs/entities/program.entity';
 import {
@@ -14,6 +15,7 @@ import {
   AvailableDays,
   PreferredTime,
 } from './enums/enums';
+import { Payment } from 'src/modules/payment/entities/payment.entity';
 
 @Entity('user')
 export class User {
@@ -87,6 +89,9 @@ export class User {
   @ManyToMany(() => Program, (program) => program.users)
   @JoinTable()
   programs: Program[];
+
+  @OneToMany(() => Payment, (payment) => payment.user)
+  payments: Payment[];
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;

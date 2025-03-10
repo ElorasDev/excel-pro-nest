@@ -8,6 +8,7 @@ import redisConfig from './common/db/redis.config';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { ProgramsModule } from './modules/programs/programs.module';
+import { PaymentModule } from './modules/payment/payment.module';
 import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env.local' });
@@ -22,6 +23,7 @@ dotenv.config({ path: '.env.local' });
     AuthModule,
     UsersModule,
     ProgramsModule,
+    PaymentModule,
   ],
 })
 export class AppModule implements NestModule {
