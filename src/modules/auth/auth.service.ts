@@ -1,26 +1,72 @@
-import { Injectable } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { RateLimiterMemory } from 'rate-limiter-flexible';
+import { LoginDto } from './dto/login.dto';
+import { comparePassword } from 'src/common/utils/crypto/passwordHash';
+import { Admin } from '../auth/entities/admin.entity';
 
 @Injectable()
 export class AuthService {
-  create(createAuthDto: CreateAuthDto) {
-    return 'This action adds a new auth';
+  private readonly loginRateLimiter: RateLimiterMemory;
+
+  constructor(
+    @InjectRepository(Admin)
+    private readonly auth_repository: Repository<Admin>,
+    private readonly jwtService: JwtService,
+  ) {
+    this.loginRateLimiter = new RateLimiterMemory({
+      points: 5,
+      duration: 900,
+      keyPrefix: 'login_fail',
+    });
   }
 
-  findAll() {
-    return `This action returns all auth`;
-  }
+  async login(loginDto: LoginDto) {
+    const { username, password } = loginDto;
 
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
-  }
+    const admin = await this.auth_repository.findOne({
+      where: { username },
+      select: [
+        'id',
+        'username',
+        'email',
+        'password',
+        'account_status',
+        'failed_attempts',
+      ],
+    });
 
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
-  }
+    if (!admin || admin.account_status === 'locked') {
+      throw new UnauthorizedException('Invalid credentials');
+    }
 
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
+    const isPasswordValid = await comparePassword(password, admin.password);
+    console.log(isPasswordValid);
+    if (!isPasswordValid) {
+      admin.failed_attempts = Number(admin.failed_attempts) + 1;
+      await this.auth_repository.save(admin);
+      try {
+        await this.loginRateLimiter.consume(username);
+      } catch {
+        admin.account_status = 'locked';
+        await this.auth_repository.save(admin);
+        throw new UnauthorizedException('Invalid credentials.');
+      }
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    admin.failed_attempts = 0;
+    await this.auth_repository.save(admin);
+    await this.loginRateLimiter.delete(username);
+
+    const payload = { email: admin.email, sub: admin.id };
+
+    const token = this.jwtService.sign(payload, {
+      expiresIn: '2d',
+    });
+
+    return { token };
   }
 }
