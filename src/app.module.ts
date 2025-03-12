@@ -9,6 +9,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { ProgramsModule } from './modules/programs/programs.module';
 import { PaymentModule } from './modules/payment/payment.module';
+import { MatchesModule } from './modules/matches/matches.module';
 import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env.local' });
@@ -24,6 +25,7 @@ dotenv.config({ path: '.env.local' });
     UsersModule,
     ProgramsModule,
     PaymentModule,
+    MatchesModule,
   ],
 })
 export class AppModule implements NestModule {
