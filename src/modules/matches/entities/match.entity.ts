@@ -50,12 +50,12 @@ export class Match {
   @JoinColumn({ name: 'referee_id' })
   referee: Referee;
 
-  @ManyToOne(() => Team, { nullable: true })
-  @JoinColumn({ name: 'home_team_id' })
+  @ManyToOne(() => Team, (team) => team.id, { nullable: true })
+  // @JoinColumn({ name: 'home_team_id' })
   home_team?: Team;
 
-  @ManyToOne(() => Team, { nullable: true })
-  @JoinColumn({ name: 'away_team_id' })
+  @ManyToOne(() => Team, (team) => team.id, { nullable: true })
+  // @JoinColumn({ name: 'away_team_id' })
   away_team?: Team;
 
   @CreateDateColumn({ type: 'timestamp', name: 'created_at' })
