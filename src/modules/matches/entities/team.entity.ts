@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { Match } from './match.entity';
+import { User } from 'src/modules/users/entities/user.entity';
 
 @Entity({ name: 'teams' })
 export class Team {
@@ -11,6 +12,9 @@ export class Team {
 
   @Column({ type: 'text', nullable: true })
   logo?: string;
+
+  @OneToMany(() => User, (user) => user.id)
+  user: User[];
 
   @OneToMany(() => Match, (match) => match.home_team)
   home_matches: Match[];
