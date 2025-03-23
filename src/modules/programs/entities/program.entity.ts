@@ -3,10 +3,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  ManyToMany,
 } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
-
 @Entity('program')
 export class Program {
   @PrimaryGeneratedColumn()
@@ -26,7 +23,4 @@ export class Program {
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
-
-  @ManyToMany(() => User, (user) => user.programs)
-  users: User[];
 }
