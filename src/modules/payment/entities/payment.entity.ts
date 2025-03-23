@@ -4,6 +4,7 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   CreateDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { PaymentStatus } from './enums/payment-status.enum';
@@ -34,6 +35,9 @@ export class Payment {
 
   @ManyToOne(() => User, (user) => user.payments)
   user: User;
+
+  @OneToMany(() => User, (user) => user.currentPlan)
+  currentPlan: User[];
 
   @CreateDateColumn()
   createdAt: Date;
