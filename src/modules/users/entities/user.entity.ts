@@ -3,17 +3,15 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  ManyToMany,
-  JoinTable,
   OneToMany,
 } from 'typeorm';
-import { Program } from '../../programs/entities/program.entity';
 import {
   Gender,
   SkillLevel,
   PlayerPosition,
   AvailableDays,
   PreferredTime,
+  SubscriptionPlan,
 } from './enums/enums';
 import { Payment } from 'src/modules/payment/entities/payment.entity';
 
@@ -86,9 +84,15 @@ export class User {
   @Column()
   cancellation_policy: boolean;
 
-  @ManyToMany(() => Program, (program) => program.users)
-  @JoinTable()
-  programs: Program[];
+  @Column({ nullable: true })
+  stripeCustomerId: string;
+
+  @Column({
+    type: 'enum',
+    enum: SubscriptionPlan,
+    default: SubscriptionPlan.FREE,
+  })
+  currentPlan: SubscriptionPlan;
 
   @OneToMany(() => Payment, (payment) => payment.user)
   payments: Payment[];

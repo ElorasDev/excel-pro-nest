@@ -38,3 +38,9 @@ export enum PaymentStatus {
   PAID = 'Paid',
   FAILED = 'Failed',
 }
+
+export enum SubscriptionPlan {
+  FREE = 'free',
+  BASIC = 'basic',
+  PREMIUM = 'premium',
+}

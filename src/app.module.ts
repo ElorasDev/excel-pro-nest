@@ -20,6 +20,7 @@ dotenv.config({ path: '.env.local' });
       isGlobal: true,
       load: [redisConfig],
     }),
+    PaymentModule.forRootAsync(),
     PassportModule,
     AuthModule,
     UsersModule,

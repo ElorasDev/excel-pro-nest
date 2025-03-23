@@ -1,58 +1,40 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn,
+  PrimaryGeneratedColumn,
   ManyToOne,
-  JoinColumn,
+  CreateDateColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
-import { Program } from '../../programs/entities/program.entity';
+import { PaymentStatus } from './enums/payment-status.enum';
+import { SubscriptionPlan } from 'src/modules/users/entities/enums/enums';
 
-export enum PaymentStatus {
-  Pending = 'Pending',
-  Paid = 'Paid',
-  Failed = 'Failed',
-}
-
-@Entity('payments')
+@Entity()
 export class Payment {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => User, (user) => user.payments, { nullable: false })
-  @JoinColumn({ name: 'user_id' })
-  user: User;
-
-  @Column({ type: 'text', nullable: false })
-  customerId: string;
-
-  @Column({ type: 'text', nullable: false })
-  email: string;
-
-  @Column({ type: 'text', nullable: false })
-  priceId: string;
-
-  @ManyToOne(() => Program, (program) => program.payments, { nullable: false })
-  @JoinColumn({ name: 'program_id' })
-  program: Program;
-
-  @Column('decimal', { precision: 10, scale: 2, nullable: false })
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
   amount: number;
 
-  @Column({
-    type: 'enum',
-    enum: PaymentStatus,
-    nullable: false,
-  })
-  payment_status: PaymentStatus;
+  @Column()
+  stripeSubscriptionId: string;
 
-  @Column({ type: 'text', nullable: true })
-  transaction_id: string;
+  @Column()
+  currency: string;
 
-  @Column({ type: 'timestamp', nullable: true })
-  payment_date: Date;
+  @Column({ type: 'enum', enum: PaymentStatus })
+  status: PaymentStatus;
 
-  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  created_at: Date;
+  @Column({ type: 'enum', enum: SubscriptionPlan })
+  plan: SubscriptionPlan;
+
+  @Column()
+  stripePaymentId: string;
+
+  @ManyToOne(() => User, (user) => user.payments)
+  user: User;
+
+  @CreateDateColumn()
+  createdAt: Date;
 }

@@ -1,14 +1,32 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { DynamicModule, Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { PaymentService } from './payment.service';
+import { PaymentsService } from './payment.service';
 import { PaymentController } from './payment.controller';
 import { Payment } from './entities/payment.entity';
+import { User } from '../users/entities/user.entity';
 
 @Module({
-  imports: [ConfigModule, TypeOrmModule.forFeature([Payment])],
+  imports: [ConfigModule, TypeOrmModule.forFeature([Payment, User])],
   controllers: [PaymentController],
-  providers: [PaymentService],
-  exports: [PaymentService],
+  providers: [PaymentsService],
+  exports: [PaymentsService],
 })
-export class PaymentModule {}
+export class PaymentModule {
+  static forRootAsync(): DynamicModule {
+    return {
+      module: PaymentModule,
+      controllers: [PaymentController],
+      imports: [ConfigModule.forRoot()],
+      providers: [
+        PaymentsService,
+        {
+          provide: 'STRIPE_API_KEY',
+          useFactory: async (configService: ConfigService) =>
+            configService.get('STRIPE_API_KEY'),
+          inject: [ConfigService],
+        },
+      ],
+    };
+  }
+}

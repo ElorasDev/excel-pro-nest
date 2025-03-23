@@ -3,12 +3,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  ManyToMany,
-  OneToMany,
 } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
-import { Payment } from 'src/modules/payment/entities/payment.entity';
-
 @Entity('program')
 export class Program {
   @PrimaryGeneratedColumn()
@@ -28,10 +23,4 @@ export class Program {
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
-
-  @ManyToMany(() => User, (user) => user.programs)
-  users: User[];
-
-  @OneToMany(() => Payment, (payment) => payment.program)
-  payments: Payment[];
 }
