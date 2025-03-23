@@ -84,13 +84,13 @@ export class User {
   @Column()
   cancellation_policy: boolean;
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   stripeCustomerId: string;
 
   @OneToMany(() => Payment, (payment) => payment.user)
   payments: Payment[];
 
-  @ManyToOne(() => Payment, (payment) => payment.plan)
+  @ManyToOne(() => Payment, (payment) => payment.plan, { nullable: true })
   currentPlan: Payment;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
