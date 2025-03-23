@@ -4,6 +4,7 @@ import {
   Column,
   CreateDateColumn,
   OneToMany,
+  ManyToOne,
 } from 'typeorm';
 import {
   Gender,
@@ -11,7 +12,6 @@ import {
   PlayerPosition,
   AvailableDays,
   PreferredTime,
-  SubscriptionPlan,
 } from './enums/enums';
 import { Payment } from 'src/modules/payment/entities/payment.entity';
 
@@ -87,15 +87,11 @@ export class User {
   @Column({ nullable: true })
   stripeCustomerId: string;
 
-  @Column({
-    type: 'enum',
-    enum: SubscriptionPlan,
-    default: SubscriptionPlan.FREE,
-  })
-  currentPlan: SubscriptionPlan;
-
   @OneToMany(() => Payment, (payment) => payment.user)
   payments: Payment[];
+
+  @ManyToOne(() => Payment, (payment) => payment.plan)
+  currentPlan: Payment;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;

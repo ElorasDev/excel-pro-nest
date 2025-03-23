@@ -117,7 +117,7 @@ export class PaymentsService {
       const paymentMethod = await this.stripe.paymentMethods.create({
         type: 'card',
         card: {
-          number: '4242424242424242', // شماره کارت تستی Stripe
+          number: '4242424242424242', // test stripe card number
           exp_month: 12,
           exp_year: 2026,
           cvc: '123',
