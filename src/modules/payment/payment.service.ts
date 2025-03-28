@@ -8,6 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import Stripe from 'stripe';
+import { v4 as uuidv4 } from 'uuid';
 import { User } from '../users/entities/user.entity';
 import { Payment } from './entities/payment.entity';
 import { SubscriptionResponseDto } from './dto/subscription-response.dto';
@@ -49,10 +50,7 @@ export class PaymentsService {
       throw new BadRequestException(`Invalid priceId: ${priceId}`);
     }
 
-    console.log(
-      'Stripe Secret Key:',
-      this.configService.get('STRIPE_SECRET_KEY'),
-    );
+    const idempotencyKey = uuidv4();
 
     try {
       const user = await this.userRepository.findOne({ where: { id: userId } });
@@ -69,16 +67,21 @@ export class PaymentsService {
         console.log(finalPaymentMethodId);
       }
 
-      const subscription = await this.stripe.subscriptions.create({
-        customer: customer.id,
-        items: [{ price: priceId }],
-        default_payment_method: finalPaymentMethodId,
-        payment_settings: {
-          payment_method_types: ['card'],
-          save_default_payment_method: 'on_subscription',
+      const subscription = await this.stripe.subscriptions.create(
+        {
+          customer: customer.id,
+          items: [{ price: priceId }],
+          default_payment_method: finalPaymentMethodId,
+          payment_settings: {
+            payment_method_types: ['card'],
+            save_default_payment_method: 'on_subscription',
+          },
+          expand: ['latest_invoice.payment_intent'],
         },
-        expand: ['latest_invoice.payment_intent'],
-      });
+        {
+          idempotencyKey,
+        },
+      );
 
       const latestInvoice = subscription.latest_invoice as Stripe.Invoice;
       const paymentIntent =

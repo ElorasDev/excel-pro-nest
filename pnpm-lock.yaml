@@ -110,6 +110,9 @@ importers:
       typeorm:
         specifier: ^0.3.21
         version: 0.3.21(ioredis@5.5.0)(pg@8.13.3)(reflect-metadata@0.1.14)(ts-node@10.9.2(@types/node@20.17.22)(typescript@5.8.2))
+      uuid:
+        specifier: ^11.1.0
+        version: 11.1.0
     devDependencies:
       '@nestjs/cli':
         specifier: ^10.0.0
