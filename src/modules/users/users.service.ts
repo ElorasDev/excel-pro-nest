@@ -17,10 +17,20 @@ export class UsersService {
   async sendOtp(phone_number: string): Promise<{ message: string }> {
     const otp = otpGenerator();
     if (!phone_number) throw new BadRequestException('Incorrect Phone Number.');
+    console.log(otp);
     await this.redisService.setOTP(`otp:${phone_number}`, otp);
     return {
       message: 'OTP Code sent successfully',
     };
+  }
+
+  async verifyOtp(phone: string, otp: string): Promise<{ success: boolean }> {
+    const storedOtp = await this.redisService.getOTP(`otp:${phone}`);
+    if (!storedOtp || storedOtp !== otp) {
+      throw new BadRequestException('Invalid or expired OTP');
+    }
+    await this.redisService.deleteOTP(`otp:${phone}`);
+    return { success: true };
   }
 
   async create(createUserDto: CreateUserDto) {
@@ -41,16 +51,8 @@ export class UsersService {
       comments,
       liability_waiver,
       cancellation_policy,
-      program_id,
-      otpCode,
+      program,
     } = createUserDto;
-
-    const storedOTP = await this.redisService.getOTP(`otp:${phone_number}`);
-    if (!storedOTP) throw new BadRequestException('OTP expired or not found.');
-    else if (storedOTP !== otpCode)
-      throw new BadRequestException('Incorrect OTP');
-
-    await this.redisService.deleteOTP(`otp:${phone_number}`);
 
     const newUser = {
       fullname,
@@ -69,7 +71,7 @@ export class UsersService {
       comments,
       liability_waiver,
       cancellation_policy,
-      program_id,
+      program,
     };
 
     await this.userRpository.save(newUser);

@@ -21,6 +21,26 @@ export class UsersController {
     return this.usersService.sendOtp(phone_number);
   }
 
+  @Post('verify-otp')
+  @ApiOperation({ summary: 'Verify OTP code' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        phone_number: { type: 'string' },
+        otp: { type: 'string' },
+      },
+    },
+  })
+  @ApiResponse({ status: 200, description: 'OTP verified successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid or expired OTP' })
+  async verifyOtp(
+    @Body('phone_number') phone_number: string,
+    @Body('otp') otp: string,
+  ) {
+    return this.usersService.verifyOtp(phone_number, otp);
+  }
+
   @Post('register')
   @ApiOperation({ summary: 'Register a new user after OTP verification' })
   @ApiResponse({ status: 201, description: 'User successfully created.' })

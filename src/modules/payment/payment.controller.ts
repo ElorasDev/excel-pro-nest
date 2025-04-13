@@ -24,8 +24,8 @@ export class PaymentController {
   })
   @ApiBadRequestResponse({ description: 'Invalid input' })
   async createSubscription(
-    @Body() createSubscriptionDto: CreateSubscriptionDto,
+    @Body() dto: CreateSubscriptionDto,
   ): Promise<SubscriptionResponseDto> {
-    return this.paymentsService.createSubscription(createSubscriptionDto);
+    return this.paymentsService.createSubscription(dto);
   }
 }

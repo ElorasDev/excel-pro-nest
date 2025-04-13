@@ -115,13 +115,8 @@ export class CreateUserDto {
   @IsBoolean()
   cancellation_policy: boolean;
 
-  @ApiProperty({ description: 'Program ID', example: 1 })
-  @IsNotEmpty()
-  @IsNumber()
-  program_id: number;
-
-  @ApiProperty({ description: 'OTP code for verification' })
+  @ApiProperty({ description: 'Program', example: "U15-U17" })
   @IsNotEmpty()
   @IsString()
-  otpCode: string;
+  program: string;
 }

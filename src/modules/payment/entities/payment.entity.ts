@@ -1,16 +1,17 @@
 import {
   Entity,
-  Column,
   PrimaryGeneratedColumn,
+  Column,
   ManyToOne,
   CreateDateColumn,
-  OneToMany,
+  UpdateDateColumn,
+  JoinColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { PaymentStatus } from './enums/payment-status.enum';
-import { SubscriptionPlan } from 'src/modules/users/entities/enums/enums';
+import { SubscriptionPlan } from '../../users/entities/enums/enums';
 
-@Entity()
+@Entity('payments')
 export class Payment {
   @PrimaryGeneratedColumn()
   id: number;
@@ -18,27 +19,51 @@ export class Payment {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   amount: number;
 
-  @Column()
-  stripeSubscriptionId: string;
-
-  @Column()
+  @Column({ length: 3, default: 'usd' })
   currency: string;
 
-  @Column({ type: 'enum', enum: PaymentStatus })
+  @Column({
+    type: 'enum',
+    enum: PaymentStatus,
+    default: PaymentStatus.PENDING,
+  })
   status: PaymentStatus;
 
-  @Column({ type: 'enum', enum: SubscriptionPlan })
+  @Column({
+    type: 'enum',
+    enum: SubscriptionPlan,
+    default: SubscriptionPlan.FREE,
+  })
   plan: SubscriptionPlan;
 
-  @Column()
-  stripePaymentId: string;
+  @Column({ nullable: true })
+  stripeSubscriptionId: string;
 
-  @ManyToOne(() => User, (user) => user.payments)
+  @Column({ nullable: true })
+  stripeCustomerId: string;
+
+  @ManyToOne(() => User, (user) => user.payments, { nullable: false })
+  @JoinColumn({ name: 'userId' }) // اجباری نیست ولی خواناتر می‌کنه
   user: User;
 
-  @OneToMany(() => User, (user) => user.currentPlan)
-  currentPlan: User[];
+  @Column()
+  userId: number;
+
+  @Column({ default: false })
+  isFirstTimePayment: boolean;
+
+  @Column({ nullable: true, type: 'timestamp' })
+  subscriptionEndDate: Date;
+
+  @Column({ default: false })
+  reminderSent: boolean;
+
+  @Column({ default: 0 })
+  expiredReminderCount: number;
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
