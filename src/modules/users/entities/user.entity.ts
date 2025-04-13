@@ -1,21 +1,21 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
+  PrimaryGeneratedColumn,
   CreateDateColumn,
+  UpdateDateColumn,
   OneToMany,
-  ManyToOne,
 } from 'typeorm';
-import {
-  Gender,
-  SkillLevel,
-  PlayerPosition,
-  AvailableDays,
-  PreferredTime,
-} from './enums/enums';
 import { Payment } from 'src/modules/payment/entities/payment.entity';
+import {
+  AvailableDays,
+  Gender,
+  PlayerPosition,
+  PreferredTime,
+  SkillLevel,
+} from './enums/enums';
 
-@Entity('user')
+@Entity('users')
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
@@ -32,6 +32,9 @@ export class User {
   })
   gender: Gender;
 
+  @Column({ type: 'boolean', default: false })
+  isTemporary?: boolean;
+
   @Column({ type: 'text' })
   parent_name: string;
 
@@ -40,6 +43,9 @@ export class User {
 
   @Column({ type: 'text' })
   email: string;
+
+  @Column({ type: 'text', nullable: false })
+  program: string;
 
   @Column({
     type: 'enum',
@@ -90,9 +96,15 @@ export class User {
   @OneToMany(() => Payment, (payment) => payment.user)
   payments: Payment[];
 
-  @ManyToOne(() => Payment, (payment) => payment.plan, { nullable: true })
-  currentPlan: Payment;
+  @Column({ nullable: true })
+  activePlan: string;
 
-  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  created_at: Date;
+  @Column({ nullable: true, type: 'timestamp' })
+  currentSubscriptionEndDate: Date;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
