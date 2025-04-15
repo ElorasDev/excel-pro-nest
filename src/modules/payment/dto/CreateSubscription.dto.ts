@@ -35,4 +35,13 @@ export class CreateSubscriptionDto {
   @IsString()
   @IsNotEmpty()
   email: string;
+
+  @ApiProperty({
+    description: 'User Phone Number',
+    example: '+1234567890',
+    required: true,
+  })
+  @IsString()
+  @IsNotEmpty()
+  phone_number: string;
 }

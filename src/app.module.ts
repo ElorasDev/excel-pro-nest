@@ -10,6 +10,8 @@ import { UsersModule } from './modules/users/users.module';
 import { ProgramsModule } from './modules/programs/programs.module';
 import { PaymentModule } from './modules/payment/payment.module';
 import { MatchesModule } from './modules/matches/matches.module';
+import { AdminModule } from './modules/admin/admin.module';
+import { SmsModule } from './modules/sms/sms.module';
 import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env.local' });
@@ -27,6 +29,8 @@ dotenv.config({ path: '.env.local' });
     ProgramsModule,
     PaymentModule,
     MatchesModule,
+    AdminModule,
+    SmsModule,
   ],
 })
 export class AppModule implements NestModule {

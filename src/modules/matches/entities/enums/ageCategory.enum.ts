@@ -1,6 +1,5 @@
 export enum AgeCategory {
-  UNDER_12 = 'Under 12',
-  UNDER_16 = 'Under 16',
-  UNDER_18 = 'Under 18',
-  SENIOR = 'Senior',
+  U7_U12 = 'U7_U12',
+  U13_U14 = 'U13_U14',
+  U15_U17 = 'U15_U17',
 }

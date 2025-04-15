@@ -77,17 +77,6 @@ export class MatchesController {
     });
   }
 
-  @ApiOperation({ summary: 'Retrieve active matches (ongoing or upcoming)' })
-  @ApiResponse({
-    status: 200,
-    description: 'List of active matches',
-    type: [Match],
-  })
-  @Get('active')
-  findActiveMatches() {
-    return this.matchesService.findActiveMatches();
-  }
-
   @ApiOperation({ summary: 'Retrieve match details by ID' })
   @ApiParam({ name: 'id', description: 'Match ID', example: 1 })
   @ApiResponse({ status: 200, description: 'Match details', type: Match })

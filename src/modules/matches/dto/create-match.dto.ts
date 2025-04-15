@@ -4,30 +4,19 @@ import {
   IsOptional,
   IsString,
   IsDate,
-  IsNumber,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { MatchStatus } from '../entities/enums/matchStatus.enum';
 import { AgeCategory } from '../entities/enums/ageCategory.enum';
 
 export class CreateMatchDto {
-  @IsNotEmpty()
-  @IsString()
-  event_name: string;
+  // @IsNotEmpty()
+  // @IsString()
+  // match: string;
 
   @IsNotEmpty()
   @Type(() => Date)
   @IsDate()
-  event_date: Date;
-
-  @IsNotEmpty()
-  @Type(() => Date)
-  @IsDate()
-  registration_deadline: Date;
-
-  @IsNotEmpty()
-  @IsEnum(MatchStatus)
-  status: MatchStatus;
+  match_date: Date;
 
   @IsNotEmpty()
   @IsEnum(AgeCategory)
@@ -35,33 +24,17 @@ export class CreateMatchDto {
 
   @IsOptional()
   @IsString()
-  description?: string;
-
-  @IsOptional()
-  @IsNumber()
-  home_score?: number;
-
-  @IsOptional()
-  @IsNumber()
-  away_score?: number;
-
-  @IsOptional()
-  @IsString()
-  penalty_info?: string;
-
-  @IsOptional()
-  @IsString()
-  location?: string;
-
-  @IsOptional()
-  @IsNumber()
-  referee_id?: number;
+  location: string;
 
   @IsNotEmpty()
-  @IsNumber()
-  home_team_id?: number;
+  @IsString()
+  address: string;
 
   @IsNotEmpty()
-  @IsNumber()
-  away_team_id?: number;
+  @IsString()
+  team1: string;
+
+  @IsNotEmpty()
+  @IsString()
+  team2: string;
 }
