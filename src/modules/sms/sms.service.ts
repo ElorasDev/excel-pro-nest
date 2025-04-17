@@ -21,6 +21,7 @@ export class TwilioService {
       // شماره‌های Short Code معمولاً 5 یا 6 رقمی هستند
       const numberWithoutPlus = formattedPhoneNumber.replace('+', '');
       if (numberWithoutPlus.length <= 6) {
+        console.log('شماره فرمت شده:', formattedPhoneNumber);
         throw new Error('شماره نمی‌تواند یک Short Code باشد');
       }
 
