@@ -3,7 +3,6 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { json, urlencoded } from 'express';
-import cors from 'cors';
 import * as dotenv from 'dotenv';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 import passport = require('passport');
@@ -14,12 +13,15 @@ dotenv.config({ path: '.env.local' });
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // ❌ این خط رو حذف کن
+  // app.use(cors());
+
   app.enableCors({
     origin: [
       'https://excel-pro-next-git-develop-eloras-dev.vercel.app',
       'http://localhost:3000',
     ],
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
       'Content-Type',
       'Authorization',
@@ -27,10 +29,7 @@ async function bootstrap() {
       'Access-Control-Request-Headers',
     ],
     credentials: true,
-    enablePreflight: true,
   });
-
-  app.use(cors());
 
   app.useGlobalPipes(
     new ValidationPipe({
