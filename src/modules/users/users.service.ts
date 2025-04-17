@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { RedisService } from 'src/common/db/redis.service';
+import { RedisService } from '../../common/db/redis.service';
 import { User } from './entities/user.entity';
 import { otpGenerator } from 'src/common/utils/otp-generator';
 import { TwilioService } from '../sms/sms.service';
