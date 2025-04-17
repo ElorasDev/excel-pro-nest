@@ -15,17 +15,7 @@ export class TwilioService {
   async sendSMS(to: string, message: string): Promise<any> {
     try {
       const formattedPhoneNumber = this.formatPhoneNumber(to);
-      console.log('شماره فرمت شده:', formattedPhoneNumber);
-
-      // بررسی کنیم که آیا این شماره یک Short Code است یا خیر
-      // شماره‌های Short Code معمولاً 5 یا 6 رقمی هستند
-      const numberWithoutPlus = formattedPhoneNumber.replace('+', '');
-      if (numberWithoutPlus.length <= 6) {
-        throw new Error(
-          `شماره نمی‌تواند یک Short Code باشد: ${formattedPhoneNumber}`,
-        );
-      }
-
+      console.log(formattedPhoneNumber);
       const response = await this.twilioClient.messages.create({
         body: message,
         from: process.env.TWILIO_PHONE_NUMBER,
@@ -40,28 +30,20 @@ export class TwilioService {
   }
 
   private formatPhoneNumber(phone: string): string {
-    // حذف همه فاصله‌ها و کاراکترهای غیر عددی به جز +
     const cleanedPhone = phone.replace(/\s+/g, '').replace(/[^\d+]/g, '');
 
-    // اگر با + شروع شده، بررسی کنیم که +1 باشد
-    if (cleanedPhone.startsWith('+')) {
-      // اگر با +1 شروع شده، آن را برگردانیم
-      if (cleanedPhone.startsWith('+1')) {
-        return cleanedPhone;
-      } else {
-        throw new Error('شماره باید آمریکایی یا کانادایی باشد (+1)');
-      }
-    }
-
-    // اگر شماره 10 رقمی است (کد منطقه + شماره محلی)
-    if (cleanedPhone.length === 10) {
-      return '+1' + cleanedPhone;
-    }
-
-    // اگر با 1 شروع شده و 11 رقمی است
-    if (cleanedPhone.startsWith('1') && cleanedPhone.length === 11) {
+    if (cleanedPhone.startsWith('+')) return cleanedPhone;
+    if (cleanedPhone.length === 10) return '+1' + cleanedPhone;
+    if (cleanedPhone.startsWith('1') && cleanedPhone.length === 11)
       return '+' + cleanedPhone;
-    }
-    console.log(phone);
+    if (
+      cleanedPhone.startsWith('0') &&
+      cleanedPhone.length >= 10 &&
+      cleanedPhone.length <= 12
+    )
+      return '+49' + cleanedPhone.substring(1);
+    if (cleanedPhone.startsWith('49')) return '+' + cleanedPhone;
+
+    return '+1' + cleanedPhone;
   }
 }
