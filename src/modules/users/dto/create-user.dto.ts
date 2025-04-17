@@ -115,8 +115,12 @@ export class CreateUserDto {
   @IsBoolean()
   cancellation_policy: boolean;
 
-  @ApiProperty({ description: 'Program', example: "U15-U17" })
+  @ApiProperty({ description: 'Program', example: 'U15-U17' })
   @IsNotEmpty()
   @IsString()
   program: string;
+
+  @IsOptional()
+  @IsString()
+  activePlan?: string;
 }

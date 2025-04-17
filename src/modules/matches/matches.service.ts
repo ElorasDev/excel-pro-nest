@@ -5,7 +5,6 @@ import { Match } from './entities/match.entity';
 import { CreateMatchDto } from './dto/create-match.dto';
 import { UpdateMatchDto } from './dto/update-match.dto';
 import { AgeCategory } from './entities/enums/ageCategory.enum';
-import { MatchStatus } from './entities/enums/matchStatus.enum';
 
 @Injectable()
 export class MatchesService {
@@ -20,15 +19,12 @@ export class MatchesService {
   }
 
   async findAll(): Promise<Match[]> {
-    return this.matchRepository.find({
-      relations: ['homeTeam', 'awayTeam', 'referee'],
-    });
+    return this.matchRepository.find();
   }
 
   async findOne(id: number): Promise<Match> {
     return this.matchRepository.findOne({
       where: { id },
-      relations: ['homeTeam', 'awayTeam', 'referee'],
     });
   }
 
@@ -71,14 +67,5 @@ export class MatchesService {
     }
 
     return query.getMany();
-  }
-
-  async findActiveMatches(): Promise<Match[]> {
-    return this.matchRepository.find({
-      where: [
-        { status: MatchStatus.ONGOING },
-        { status: MatchStatus.UPCOMING },
-      ],
-    });
   }
 }

@@ -9,6 +9,7 @@ import { EXCEL_PRO_JWT } from '../../common/constant/jwt.const';
 import { Admin } from './entities/admin.entity';
 
 import * as dotenv from 'dotenv';
+import { JwtStrategy } from './strategies/jwt.strategy';
 
 dotenv.config({ path: '.env.local' });
 @Module({
@@ -22,6 +23,7 @@ dotenv.config({ path: '.env.local' });
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, JwtStrategy],
+  exports: [JwtModule],
 })
 export class AuthModule {}

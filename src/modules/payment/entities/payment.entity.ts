@@ -32,7 +32,6 @@ export class Payment {
   @Column({
     type: 'enum',
     enum: SubscriptionPlan,
-    default: SubscriptionPlan.FREE,
   })
   plan: SubscriptionPlan;
 
@@ -43,7 +42,7 @@ export class Payment {
   stripeCustomerId: string;
 
   @ManyToOne(() => User, (user) => user.payments, { nullable: false })
-  @JoinColumn({ name: 'userId' }) // اجباری نیست ولی خواناتر می‌کنه
+  @JoinColumn({ name: 'userId' })
   user: User;
 
   @Column()

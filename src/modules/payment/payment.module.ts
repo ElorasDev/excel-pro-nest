@@ -5,11 +5,12 @@ import { PaymentsService } from './payment.service';
 import { PaymentController } from './payment.controller';
 import { Payment } from './entities/payment.entity';
 import { User } from '../users/entities/user.entity';
+import { TwilioService } from '../sms/sms.service';
 
 @Module({
   imports: [ConfigModule, TypeOrmModule.forFeature([Payment, User])],
   controllers: [PaymentController],
-  providers: [PaymentsService],
+  providers: [PaymentsService, TwilioService],
   exports: [PaymentsService],
 })
 export class PaymentModule {

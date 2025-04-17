@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
+import { SubscriptionPlan } from 'src/modules/users/entities/enums/enums';
 
 export class CreateSubscriptionDto {
   @ApiProperty({
@@ -35,4 +36,13 @@ export class CreateSubscriptionDto {
   @IsString()
   @IsNotEmpty()
   email: string;
+
+  @ApiProperty({
+    description: 'User Phone Number',
+    example: 'U12_U13',
+    required: true,
+  })
+  @IsString()
+  @IsNotEmpty()
+  planId: SubscriptionPlan;
 }

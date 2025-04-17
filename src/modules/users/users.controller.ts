@@ -1,7 +1,16 @@
-import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Put,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -62,6 +71,26 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'User not found.' })
   findOneUser(@Param('id') id: string) {
     return this.usersService.findOne(+id);
+  }
+
+  @Get('phone/:phoneNumber')
+  @ApiOperation({ summary: 'Get a user by phone number' })
+  @ApiResponse({ status: 200, description: 'User data.' })
+  @ApiResponse({ status: 404, description: 'User not found.' })
+  findUserByPhone(@Param('phoneNumber') phoneNumber: string) {
+    return this.usersService.findByPhoneNumber(phoneNumber);
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: 'Update a user by ID' })
+  @ApiResponse({ status: 200, description: 'User successfully updated.' })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid input data or user not found.',
+  })
+  @ApiResponse({ status: 404, description: 'User not found.' })
+  updateUser(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.update(+id, updateUserDto);
   }
 
   @Delete(':id')
