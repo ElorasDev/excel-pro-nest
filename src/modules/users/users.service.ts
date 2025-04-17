@@ -27,8 +27,8 @@ export class UsersService {
     try {
       // Send OTP via Twilio
       await this.twilioService.sendSMS(
-        `Your verification code is: ${otp}`,
         phone_number,
+        `Your verification code is: ${otp}`,
       );
 
       return {
