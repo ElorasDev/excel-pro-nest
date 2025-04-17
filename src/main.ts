@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { json, urlencoded } from 'express';
+import cors from 'cors';
 import * as dotenv from 'dotenv';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 import passport = require('passport');
@@ -19,10 +20,17 @@ async function bootstrap() {
       'http://localhost:3000',
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    allowedHeaders:
-      'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization, Origin, Cache-Control, Pragma, Expires',
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Access-Control-Allow-Methods',
+      'Access-Control-Request-Headers',
+    ],
     credentials: true,
+    enablePreflight: true,
   });
+
+  app.use(cors());
 
   app.useGlobalPipes(
     new ValidationPipe({
