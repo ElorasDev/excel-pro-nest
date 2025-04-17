@@ -3,8 +3,9 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { json, urlencoded } from 'express';
-import * as passport from 'passport';
 import * as dotenv from 'dotenv';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import passport = require('passport');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 import session = require('express-session');
 
