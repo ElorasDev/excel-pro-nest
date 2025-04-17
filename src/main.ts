@@ -13,12 +13,15 @@ dotenv.config({ path: '.env.local' });
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // تنظیمات CORS بر اساس محیط
+  const corsOrigins =
+    process.env.NODE_ENV !== 'development'
+      ? ['https://excel-pro-next-git-develop-eloras-dev.vercel.app']
+      : ['http://localhost:3000'];
+
   app.enableCors({
-    origin: [
-      'https://excel-pro-next-git-develop-eloras-dev.vercel.app',
-      'http://localhost:3000',
-    ],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    origin: corsOrigins,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: [
       'Content-Type',
       'Authorization',
@@ -63,6 +66,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  await app.listen(process.env.PORT);
+  await app.listen(process.env.PORT || 3001);
+  console.log(`Application is running on: ${await app.getUrl()}`);
 }
 bootstrap();
