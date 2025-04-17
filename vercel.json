@@ -9,6 +9,11 @@
   "routes": [
     {
       "src": "/(.*)",
+      "methods": ["OPTIONS"],
+      "dest": "src/main.ts"
+    },
+    {
+      "src": "/(.*)",
       "dest": "src/main.ts"
     }
   ]

@@ -13,9 +13,6 @@ dotenv.config({ path: '.env.local' });
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // ❌ این خط رو حذف کن
-  // app.use(cors());
-
   app.enableCors({
     origin: [
       'https://excel-pro-next-git-develop-eloras-dev.vercel.app',
