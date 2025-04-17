@@ -12,7 +12,10 @@ import { PaymentModule } from './modules/payment/payment.module';
 import { MatchesModule } from './modules/matches/matches.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { SmsModule } from './modules/sms/sms.module';
+import { MessagesModule } from './modules/messages/messages.module';
+import { GalleryModule } from './modules/gallery/gallery.module';
 import * as dotenv from 'dotenv';
+import { JwtModule } from '@nestjs/jwt';
 
 dotenv.config({ path: '.env.local' });
 @Module({
@@ -21,6 +24,10 @@ dotenv.config({ path: '.env.local' });
     ConfigModule.forRoot({
       isGlobal: true,
       load: [redisConfig],
+    }),
+    JwtModule.register({
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: '2d' },
     }),
     PaymentModule.forRootAsync(),
     PassportModule,
@@ -31,6 +38,8 @@ dotenv.config({ path: '.env.local' });
     MatchesModule,
     AdminModule,
     SmsModule,
+    MessagesModule,
+    GalleryModule,
   ],
 })
 export class AppModule implements NestModule {

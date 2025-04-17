@@ -10,6 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Cron } from '@nestjs/schedule';
 import { LessThan, Repository } from 'typeorm';
 import { format } from 'date-fns';
+import { TwilioService } from '../sms/sms.service';
 import { User } from '../users/entities/user.entity';
 import { Payment } from './entities/payment.entity';
 import { SubscriptionResponseDto } from './dto/subscription-response.dto';
@@ -17,22 +18,23 @@ import { ConfigService } from '@nestjs/config';
 import { CreateSubscriptionDto } from './dto/CreateSubscription.dto';
 import { PaymentStatus } from './entities/enums/payment-status.enum';
 import { SubscriptionPlan } from '../users/entities/enums/enums';
+import * as dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
 
 @Injectable()
 export class PaymentsService {
   private readonly stripe: Stripe;
   private readonly logger = new Logger(PaymentsService.name);
   private readonly priceMapping: Record<string, string> = {
-    basic: 'price_basic_monthly',
-    pro: 'price_pro_monthly',
-    premium: 'price_premium_yearly',
+    free: 'price_free_2monthly',
+    U5_U8: `${process.env.U5_U8}`,
+    U9_U12: `${process.env.U9_U12}`,
+    U13_U14: `${process.env.U13_U14}`,
+    U15_U18: `${process.env.U15_U18}`,
   };
 
-  // تنظیم هزینه اشتراک اولیه
-  private readonly firstTimeSubscriptionFee = 70; // $70 هزینه اشتراک اولیه
+  private readonly firstTimeSubscriptionFee = 75;
   private readonly firstTimeFeeProductId = 'prod_first_time_fee';
-
-  // ارز پیش‌فرض - دلار کانادا
   private readonly defaultCurrency = 'cad';
 
   constructor(
@@ -41,17 +43,19 @@ export class PaymentsService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private configService: ConfigService,
+    private readonly twilioService: TwilioService,
   ) {
     const secretKey = configService.get<string>('STRIPE_SECRET_KEY');
     if (!secretKey) throw new Error('Stripe secret key not configured.');
-    // استفاده از نسخه API معتبر و به‌روز
+
     this.stripe = new Stripe(secretKey, { apiVersion: '2025-02-24.acacia' });
   }
 
   async createSubscription(
     dto: CreateSubscriptionDto,
   ): Promise<SubscriptionResponseDto> {
-    const { priceId, userId, paymentMethodId, email, phone_number } = dto;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { priceId, userId, paymentMethodId, email, planId } = dto;
 
     this.logger.log(
       `Creating subscription with priceId: ${priceId}, userId: ${userId || 'Not provided'}`,
@@ -113,6 +117,17 @@ export class PaymentsService {
           try {
             const customer = await this.getOrCreateStripeCustomer(user);
             customerId = customer.id;
+
+            // اطمینان حاصل کنیم که شناسه مشتری Stripe در جدول کاربر به‌روزرسانی شده است
+            if (user.stripeCustomerId !== customerId) {
+              await this.userRepository.update(user.id, {
+                stripeCustomerId: customerId,
+                activePlan: priceId,
+              });
+              this.logger.log(
+                `Updated user ${user.id} with Stripe customer ID: ${customerId}`,
+              );
+            }
           } catch (error) {
             this.logger.error(
               `Failed to get/create Stripe customer: ${error.message}`,
@@ -206,6 +221,8 @@ export class PaymentsService {
             payment_method_types: ['card'],
             save_default_payment_method: 'on_subscription',
           },
+
+          proration_behavior: 'create_prorations',
           expand: ['latest_invoice.payment_intent'],
         };
 
@@ -285,7 +302,7 @@ export class PaymentsService {
           amount: amount,
           currency: this.defaultCurrency, // همیشه از CAD استفاده کنید
           status: PaymentStatus.ACTIVE,
-          plan: this.determinePlanFromPrice(stripePriceId),
+          plan: this.determinePlanFromPrice(planId),
           stripeSubscriptionId: subscription.id,
           stripeCustomerId: customerId,
           user: user ? user : null, // فقط اگر کاربر وجود داشته باشد
@@ -296,22 +313,70 @@ export class PaymentsService {
         });
 
         const savedPayment = await this.paymentRepository.save(payment);
+
         this.logger.log(
           `Payment record saved successfully with ID: ${savedPayment.id}`,
         );
 
         // اگر کاربری داریم، اطلاعات اشتراک آنها را به‌روز کنید
         if (user) {
-          await this.userRepository.update(user.id, {
-            activePlan: this.determinePlanFromPrice(stripePriceId),
-            currentSubscriptionEndDate: subscriptionEndDate,
-          });
-          this.logger.log(
-            `Updated user with active plan and subscription end date`,
-          );
+          const activePlan = this.determinePlanFromPrice(priceId);
+          try {
+            const updateResult = await this.userRepository.update(user.id, {
+              activePlan: activePlan,
+              currentSubscriptionEndDate: subscriptionEndDate,
+              stripeCustomerId: customerId, // اطمینان حاصل کنیم که شناسه مشتری Stripe نیز به‌روز می‌شود
+            });
+
+            if (updateResult.affected > 0) {
+              this.logger.log(
+                `Successfully updated user with active plan, subscription end date, and stripe customer ID`,
+              );
+            } else {
+              this.logger.error(
+                `Failed to update user with subscription details. No rows affected.`,
+              );
+            }
+
+            // بررسی اضافی برای اطمینان از به‌روزرسانی
+            const updatedUser = await this.userRepository.findOne({
+              where: { id: user.id },
+            });
+
+            if (
+              !updatedUser.activePlan ||
+              !updatedUser.currentSubscriptionEndDate ||
+              !updatedUser.stripeCustomerId
+            ) {
+              this.logger.warn(
+                `User ${user.id} update might be incomplete: activePlan=${updatedUser.activePlan}, currentSubscriptionEndDate=${updatedUser.currentSubscriptionEndDate}, stripeCustomerId=${updatedUser.stripeCustomerId}`,
+              );
+
+              // تلاش مجدد برای به‌روزرسانی با استفاده از روش save به جای update
+              updatedUser.activePlan = activePlan;
+              updatedUser.currentSubscriptionEndDate = subscriptionEndDate;
+              updatedUser.stripeCustomerId = customerId;
+
+              await this.userRepository.save(updatedUser);
+              this.logger.log(`Retry user update with save method completed`);
+            }
+          } catch (updateError) {
+            this.logger.error(
+              `Error updating user with subscription details: ${updateError.message}`,
+              updateError.stack,
+            );
+            // ادامه می‌دهیم تا اشتراک را برگردانیم، حتی اگر به‌روزرسانی کاربر شکست خورد
+          }
         }
 
         // ارسال پیامک به شماره موبایل کاربر در جهت خرید نهایی شده
+        this.twilioService.sendSMS(
+          `Dear ${user.fullname},
+Your payment was successfully completed. We sincerely appreciate your trust in our services.  
+If you have any questions or concerns, please don’t hesitate to contact our support team.  
+Thank you for choosing us!`,
+          user.phone_number,
+        );
 
         return {
           clientSecret: paymentIntent.client_secret,
@@ -440,37 +505,46 @@ export class PaymentsService {
     // نگاشت معکوس: بررسی کنید آیا این یک شناسه قیمت از نگاشت داخلی ما است
     for (const [plan, priceId] of Object.entries(this.priceMapping)) {
       if (priceId === stripePriceId) {
-        if (plan === 'basic') return SubscriptionPlan.FREE;
-        if (plan === 'pro') return SubscriptionPlan.PRO;
-        if (plan === 'premium') return SubscriptionPlan.PREMIUM;
+        if (plan === 'free') return SubscriptionPlan.free;
+        if (plan === 'U5_U8') return SubscriptionPlan.U5_U8;
+        if (plan === 'U9_U12') return SubscriptionPlan.U9_U12;
+        if (plan === 'U13_U14') return SubscriptionPlan.U13_U14;
+        if (plan === 'U15_U18') return SubscriptionPlan.U15_U18;
       }
     }
 
     // اگر در نگاشت ما نیست، از شناسه قیمت استنتاج کنید
-    if (stripePriceId.includes('basic')) {
-      return SubscriptionPlan.FREE;
-    } else if (stripePriceId.includes('pro')) {
-      return SubscriptionPlan.PRO;
-    } else if (stripePriceId.includes('premium')) {
-      return SubscriptionPlan.PREMIUM;
+    if (stripePriceId.includes('U5_U8')) {
+      return SubscriptionPlan.U5_U8;
+    } else if (stripePriceId.includes('free')) {
+      return SubscriptionPlan.free;
+    } else if (stripePriceId.includes('U9_U12')) {
+      return SubscriptionPlan.U9_U12;
+    } else if (stripePriceId.includes('U13_U14')) {
+      return SubscriptionPlan.U13_U14;
+    } else if (stripePriceId.includes('U15_U18')) {
+      return SubscriptionPlan.U15_U18;
     }
 
-    // برگشت پیش‌فرض
-    return SubscriptionPlan.FREE;
+    this.logger.warn(
+      `Plan could not be determined from price ID: ${stripePriceId}, using default plan`,
+    );
+    return SubscriptionPlan.free;
   }
 
   private async createTestPaymentMethod(): Promise<Stripe.PaymentMethod> {
     try {
-      // فقط برای محیط‌های توسعه - هرگز در تولید استفاده نشود
-      return await this.stripe.paymentMethods.create({
-        type: 'card',
-        card: {
-          number: '4242424242424242',
-          exp_month: 12,
-          exp_year: new Date().getFullYear() + 2, // همیشه دو سال در آینده
-          cvc: '123',
-        },
-      });
+      if (process.env.NODE_ENV === 'development') {
+        return await this.stripe.paymentMethods.create({
+          type: 'card',
+          card: {
+            number: '4242424242424242',
+            exp_month: 12,
+            exp_year: new Date().getFullYear() + 2, // همیشه دو سال در آینده
+            cvc: '123',
+          },
+        });
+      }
     } catch (error) {
       this.logger.error(
         `Failed to create test PaymentMethod: ${error.message}`,
@@ -488,16 +562,24 @@ export class PaymentsService {
     try {
       if (user.stripeCustomerId) {
         this.logger.log(`Retrieving existing Stripe customer`);
-        const customer = await this.stripe.customers.retrieve(
-          user.stripeCustomerId,
-        );
+        try {
+          const customer = await this.stripe.customers.retrieve(
+            user.stripeCustomerId,
+          );
 
-        // بررسی کنید آیا مشتری حذف شده است
-        if ((customer as any).deleted) {
-          throw new Error('Customer was deleted');
+          // بررسی کنیم که آیا مشتری حذف شده است
+          if ((customer as any).deleted) {
+            throw new Error('Customer was deleted');
+          }
+
+          return customer as Stripe.Customer;
+        } catch (stripeError) {
+          // اگر مشتری در Stripe وجود ندارد، یک مشتری جدید ایجاد کنیم
+          this.logger.warn(
+            `امکان بازیابی مشتری Stripe با شناسه ${user.stripeCustomerId} وجود ندارد: ${stripeError.message}. در حال ایجاد مشتری جدید.`,
+          );
+          // ادامه به ایجاد یک مشتری جدید
         }
-
-        return customer as Stripe.Customer;
       }
 
       this.logger.log(`Creating new Stripe customer for user`);
@@ -631,12 +713,11 @@ export class PaymentsService {
         this.logger.log(`Creating new user from successful payment`);
         try {
           const customerObj = customer as Stripe.Customer;
-          // ایجاد کاربر با حداقل فیلدهای مورد نیاز
           user = this.userRepository.create({
             email: customerObj.email,
             fullname: customerObj.name || 'New Customer',
             stripeCustomerId: customerId,
-            // سایر فیلدهای مورد نیاز را طبق مدل کاربر خود اضافه کنید
+            // other fields
           });
 
           await this.userRepository.save(user);
@@ -794,13 +875,15 @@ export class PaymentsService {
       // ارسال یادآوری برای هر اشتراک
       for (const payment of remindPayments) {
         if (payment.user && payment.user.id) {
-          const { fullname } = payment.user;
+          const { fullname, phone_number } = payment.user;
+          await this.twilioService.sendSMS(
+            `🔔 REMINDER: Hi ${fullname}, your ${payment.plan} subscription will expire in 2 days on ${format(payment.subscriptionEndDate, 'yyyy-MM-dd')}. Please renew to continue enjoying our services.`,
+            phone_number,
+          );
 
           this.logger.log(
             `🔔 REMINDER: Hi ${fullname}, your ${payment.plan} subscription will expire in 2 days on ${format(payment.subscriptionEndDate, 'yyyy-MM-dd')}. Please renew to continue enjoying our services.`,
           );
-
-          // در اینجا می‌توانید کد واقعی ارسال ایمیل یا پیامک را اضافه کنید
 
           // علامت‌گذاری به عنوان یادآوری ارسال شده
           await this.paymentRepository.update(payment.id, {
@@ -824,7 +907,7 @@ export class PaymentsService {
    */
   private async sendExpiredSubscriptionReminders() {
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setHours(0, 10, 0, 0);
 
     this.logger.log(
       `Checking for expired subscriptions as of ${format(today, 'yyyy-MM-dd')}`,
@@ -854,10 +937,14 @@ export class PaymentsService {
       // ارسال یادآوری برای هر اشتراک منقضی شده
       for (const payment of remindPayments) {
         if (payment.user && payment.user.id) {
-          const { fullname } = payment.user;
+          const { fullname, phone_number } = payment.user;
 
           // فقط در صورتی یادآوری ارسال کنید که هنوز به حد مجاز نرسیده باشیم (محدود به 7 یادآوری)
           if (payment.expiredReminderCount < 7) {
+            this.twilioService.sendSMS(
+              `🚨 EXPIRED: Hi ${fullname}, your ${payment.plan} subscription expired on ${format(payment.subscriptionEndDate, 'yyyy-MM-dd')}. Please renew now to continue enjoying our services without interruption.`,
+              phone_number,
+            );
             this.logger.log(
               `🚨 EXPIRED: Hi ${fullname}, your ${payment.plan} subscription expired on ${format(payment.subscriptionEndDate, 'yyyy-MM-dd')}. Please renew now to continue enjoying our services without interruption.`,
             );
@@ -1002,10 +1089,13 @@ export class PaymentsService {
       );
     }
 
+    // this.twilioService.sendSMS(
+    //   `🔔 TEST REMINDER: Hi ${user.fullname}, this is a test reminder that your ${subscription.plan} subscription will expire on ${format(subscription.subscriptionEndDate, 'yyyy-MM-dd')}. Please renew to continue enjoying our services.`,
+    //   user.phone_number,
+    // );
+
     this.logger.log(
       `🔔 TEST REMINDER: Hi ${user.fullname}, this is a test reminder that your ${subscription.plan} subscription will expire on ${format(subscription.subscriptionEndDate, 'yyyy-MM-dd')}. Please renew to continue enjoying our services.`,
     );
-
-    // در اینجا می‌توانید کد واقعی ارسال ایمیل یا پیامک را اضافه کنید
   }
 }

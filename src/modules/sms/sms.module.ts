@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { KavenegarService } from './sms.service';
+import { TwilioService } from './sms.service';
 
 @Module({
-  providers: [KavenegarService],
-  exports: [KavenegarService],
+  providers: [TwilioService],
+  exports: [TwilioService],
 })
 export class SmsModule {}

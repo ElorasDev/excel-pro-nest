@@ -15,9 +15,16 @@ async function bootstrap() {
     origin: true, // This allows requests from any origin
     // Alternative: use specific origins
     // origin: ['http://localhost:3000', 'http://localhost:3001'],
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Cache-Control',
+      'Pragma',
+      'Expires',
+      'Origin,X-Requested-With,Content-Type,Accept,Authorization',
+    ],
     credentials: true,
-    allowedHeaders: 'Origin,X-Requested-With,Content-Type,Accept,Authorization',
     preflightContinue: false,
     optionsSuccessStatus: 204,
   });

@@ -5,6 +5,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { RedisService } from 'src/common/db/redis.service';
 import { User } from './entities/user.entity';
 import { otpGenerator } from 'src/common/utils/otp-generator';
+import { TwilioService } from '../sms/sms.service';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -12,16 +14,30 @@ export class UsersService {
     @InjectRepository(User)
     private readonly userRpository: Repository<User>,
     private readonly redisService: RedisService,
+    private readonly twilioService: TwilioService,
   ) {}
 
   async sendOtp(phone_number: string): Promise<{ message: string }> {
     const otp = otpGenerator();
     if (!phone_number) throw new BadRequestException('Incorrect Phone Number.');
+
     console.log(otp);
     await this.redisService.setOTP(`otp:${phone_number}`, otp);
-    return {
-      message: 'OTP Code sent successfully',
-    };
+
+    try {
+      // Send OTP via Twilio
+      await this.twilioService.sendSMS(
+        `Your verification code is: ${otp}`,
+        phone_number,
+      );
+
+      return {
+        message: 'OTP Code sent successfully',
+      };
+    } catch (error) {
+      console.error('Error sending OTP via Twilio:', error);
+      throw new BadRequestException('Failed to send OTP');
+    }
   }
 
   async verifyOtp(phone: string, otp: string): Promise<{ success: boolean }> {
@@ -84,6 +100,35 @@ export class UsersService {
 
   async findOne(id: number) {
     return await this.userRpository.findOne({ where: { id } });
+  }
+
+  async findByPhoneNumber(phoneNumber: string) {
+    console.log(phoneNumber);
+    const user = await this.userRpository.findOne({
+      where: { phone_number: phoneNumber },
+    });
+
+    if (!user) {
+      return false;
+    }
+
+    return user;
+  }
+
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    const user = await this.userRpository.findOne({ where: { id } });
+
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    // Update user properties with the values from updateUserDto
+    Object.assign(user, updateUserDto);
+
+    // Save the updated user
+    await this.userRpository.save(user);
+
+    return user;
   }
 
   async remove(id: number) {

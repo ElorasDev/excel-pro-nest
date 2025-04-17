@@ -34,7 +34,8 @@ export class SubscriptionResponseDto {
   stripeCustomerId?: string;
 
   @ApiProperty({
-    description: 'The total amount charged including subscription and any one-time fees',
+    description:
+      'The total amount charged including subscription and any one-time fees',
     example: 110,
     required: false,
   })
@@ -48,7 +49,7 @@ export class SubscriptionResponseDto {
   currency?: string;
 
   @ApiProperty({
-    description: 'Indicates if this is the user\'s first subscription',
+    description: "Indicates if this is the user's first subscription",
     example: true,
     required: false,
   })
