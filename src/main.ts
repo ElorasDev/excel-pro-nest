@@ -14,28 +14,28 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // تنظیمات CORS بر اساس محیط
-  const corsOrigins =
-    process.env.NODE_ENV !== 'development'
-      ? ['https://excel-pro-next-git-develop-eloras-dev.vercel.app']
-      : ['http://localhost:3000'];
+  // const corsOrigins =
+  //   process.env.NODE_ENV !== 'development'
+  //     ? ['https://excel-pro-next-git-develop-eloras-dev.vercel.app']
+  //     : ['http://localhost:3000'];
 
-  app.enableCors({
-    origin: corsOrigins,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: [
-      'Content-Type',
-      'Authorization',
-      'Cache-Control',
-      'Pragma',
-      'Expires',
-      'Origin',
-      'X-Requested-With',
-      'Accept',
-    ],
-    credentials: true,
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
-  });
+  // app.enableCors({
+  //   origin: corsOrigins,
+  //   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  //   allowedHeaders: [
+  //     'Content-Type',
+  //     'Authorization',
+  //     'Cache-Control',
+  //     'Pragma',
+  //     'Expires',
+  //     'Origin',
+  //     'X-Requested-With',
+  //     'Accept',
+  //   ],
+  //   credentials: true,
+  //   preflightContinue: false,
+  //   optionsSuccessStatus: 204,
+  // });
 
   app.useGlobalPipes(
     new ValidationPipe({
