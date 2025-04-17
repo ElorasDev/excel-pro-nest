@@ -15,6 +15,7 @@ export class TwilioService {
   async sendSMS(to: string, message: string): Promise<any> {
     try {
       const formattedPhoneNumber = this.formatPhoneNumber(to);
+      console.log(formattedPhoneNumber);
       const response = await this.twilioClient.messages.create({
         body: message,
         from: process.env.TWILIO_PHONE_NUMBER,
