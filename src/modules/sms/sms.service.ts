@@ -16,13 +16,14 @@ export class TwilioService {
     try {
       const formattedPhoneNumber = this.formatPhoneNumber(to);
       console.log(formattedPhoneNumber);
-      const response = await this.twilioClient.messages.create({
-        body: message,
-        from: process.env.TWILIO_PHONE_NUMBER,
-        to: formattedPhoneNumber,
-      });
+      console.log(message);
+      // const response = await this.twilioClient.messages.create({
+      //   body: message,
+      //   from: process.env.TWILIO_PHONE_NUMBER,
+      //   to: formattedPhoneNumber,
+      // });
 
-      return response;
+      // return response;
     } catch (error) {
       console.error('Twilio SMS Error:', error);
       throw error;
