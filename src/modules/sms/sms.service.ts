@@ -62,10 +62,6 @@ export class TwilioService {
     if (cleanedPhone.startsWith('1') && cleanedPhone.length === 11) {
       return '+' + cleanedPhone;
     }
-
-    // اگر هیچ کدام از فرمت‌های بالا نباشد، خطا بدهیم
-    throw new Error(
-      'فرمت شماره نامعتبر است. شماره باید 10 رقمی یا با 1 شروع شود و 11 رقمی باشد.',
-    );
+    console.log(phone);
   }
 }
