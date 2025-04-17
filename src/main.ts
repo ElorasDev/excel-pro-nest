@@ -21,7 +21,7 @@ async function bootstrap() {
       'https://excel-pro-next-git-develop-eloras-dev.vercel.app',
       'http://localhost:3000',
     ],
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: [
       'Content-Type',
       'Authorization',
