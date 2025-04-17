@@ -3,13 +3,25 @@
     "builds": [
       {
         "src": "dist/main.js",
-        "use": "@vercel/node"
+        "use": "@vercel/node",
+        "config": {
+          "includeFiles": [
+            "dist/**/*",
+            ".env.local"
+          ]
+        }
       }
     ],
     "routes": [
       {
         "src": "/(.*)",
-        "dest": "dist/main.js"
+        "dest": "dist/main.js",
+        "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],
+        "headers": {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization, Cache-Control, X-Requested-With"
+        }
       }
     ]
   }
