@@ -7,6 +7,7 @@ import {
   Param,
   Query,
   Body,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -21,6 +22,7 @@ import { CreateMatchDto } from './dto/create-match.dto';
 import { UpdateMatchDto } from './dto/update-match.dto';
 import { Match } from './entities/match.entity';
 import { AgeCategory } from './entities/enums/ageCategory.enum';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 // import { MatchStatus } from './entities/enums/matchStatus.enum';
 
 @ApiTags('Matches') // API Group in Swagger
@@ -92,6 +94,7 @@ export class MatchesController {
     description: 'Match successfully created',
     type: Match,
   })
+  @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() createMatchDto: CreateMatchDto) {
     return this.matchesService.create(createMatchDto);
@@ -105,6 +108,7 @@ export class MatchesController {
     description: 'Match successfully updated',
     type: Match,
   })
+  @UseGuards(JwtAuthGuard)
   @Put(':id')
   update(@Param('id') id: number, @Body() updateMatchDto: UpdateMatchDto) {
     return this.matchesService.update(id, updateMatchDto);
@@ -113,6 +117,7 @@ export class MatchesController {
   @ApiOperation({ summary: 'Delete a match' })
   @ApiParam({ name: 'id', description: 'Match ID', example: 1 })
   @ApiResponse({ status: 200, description: 'Match successfully deleted' })
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: number) {
     return this.matchesService.remove(id);
