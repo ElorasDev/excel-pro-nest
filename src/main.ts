@@ -14,17 +14,20 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: true, // This allows requests from any origin
-    // Alternative: use specific origins
-    // origin: ['http://localhost:3000', 'http://localhost:3001'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    origin: [
+      'https://excel-pro-next-git-develop-eloras-dev.vercel.app',
+      'http://localhost:3000',
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
       'Content-Type',
       'Authorization',
       'Cache-Control',
       'Pragma',
       'Expires',
-      'Origin,X-Requested-With,Content-Type,Accept,Authorization',
+      'Origin',
+      'X-Requested-With',
+      'Accept',
     ],
     credentials: true,
     preflightContinue: false,
