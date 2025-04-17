@@ -4,7 +4,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RedisService } from '../../common/db/redis.service';
 import { User } from './entities/user.entity';
-import { otpGenerator } from 'src/common/utils/otp-generator';
+import { otpGenerator } from '../../common/utils/otp-generator';
 import { TwilioService } from '../sms/sms.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 
