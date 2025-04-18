@@ -174,10 +174,7 @@ export class PaymentsService {
       let finalPaymentMethodId = paymentMethodId;
       if (!finalPaymentMethodId) {
         // فقط در محیط توسعه از روش پرداخت تست استفاده کنید
-        if (
-          this.configService.get<string>('NODE_ENV') === 'production' ||
-          this.configService.get<string>('NODE_ENV') === 'development'
-        ) {
+        if (this.configService.get<string>('NODE_ENV') !== 'production') {
           this.logger.log('Creating test payment method - NOT FOR PRODUCTION');
           const testPaymentMethod = await this.createTestPaymentMethod();
           finalPaymentMethodId = testPaymentMethod.id;
@@ -536,10 +533,7 @@ Thank you for choosing us!`,
 
   private async createTestPaymentMethod(): Promise<Stripe.PaymentMethod> {
     try {
-      if (
-        process.env.NODE_ENV === 'development' ||
-        process.env.NODE_ENV === 'production'
-      ) {
+      if (process.env.NODE_ENV === 'development') {
         return await this.stripe.paymentMethods.create({
           type: 'card',
           card: {
