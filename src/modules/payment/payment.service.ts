@@ -18,6 +18,7 @@ import { ConfigService } from '@nestjs/config';
 import { CreateSubscriptionDto } from './dto/CreateSubscription.dto';
 import { PaymentStatus } from './entities/enums/payment-status.enum';
 import { SubscriptionPlan } from '../users/entities/enums/enums';
+import { PaymentResponseDto } from './dto/get-payment.dto';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
 
@@ -1096,5 +1097,30 @@ Thank you for choosing us!`,
     this.logger.log(
       `🔔 TEST REMINDER: Hi ${user.fullname}, this is a test reminder that your ${subscription.plan} subscription will expire on ${format(subscription.subscriptionEndDate, 'yyyy-MM-dd')}. Please renew to continue enjoying our services.`,
     );
+  }
+
+  async findAllWithUsers(): Promise<PaymentResponseDto[]> {
+    const payments = await this.paymentRepository.find({
+      relations: ['user'],
+      order: { createdAt: 'DESC' },
+    });
+
+    return payments.map((payment) => ({
+      id: payment.id,
+      amount: +payment.amount,
+      currency: payment.currency,
+      status: payment.status,
+      subscriptionPlan: payment.plan,
+      userEmail: payment.user.email,
+      phone_number: payment.user.phone_number,
+      stripeSubscriptionId: payment.stripeSubscriptionId,
+      stripeCustomerId: payment.stripeCustomerId,
+      userId: payment.userId,
+      fullname: payment.user.fullname,
+      isFirstTimePayment: payment.isFirstTimePayment,
+      subscriptionEndDate: payment.subscriptionEndDate,
+      createdAt: payment.createdAt,
+      updatedAt: payment.updatedAt,
+    }));
   }
 }
