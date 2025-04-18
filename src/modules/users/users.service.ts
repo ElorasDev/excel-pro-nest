@@ -131,6 +131,22 @@ export class UsersService {
     return user;
   }
 
+  async updateByPhone(phone_number: string, updateUserDto: UpdateUserDto) {
+    const user = await this.userRpository.findOne({ where: { phone_number } });
+
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    // Update user properties with the values from updateUserDto
+    Object.assign(user, updateUserDto);
+
+    // Save the updated user
+    await this.userRpository.save(user);
+
+    return user;
+  }
+
   async remove(id: number) {
     await this.userRpository.delete(id);
     return `This action removes a #${id} user`;

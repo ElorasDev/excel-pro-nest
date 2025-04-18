@@ -97,6 +97,21 @@ export class UsersController {
     return this.usersService.update(+id, updateUserDto);
   }
 
+  @Put('phone/:phoneNumber')
+  @ApiOperation({ summary: 'Update a user by ID' })
+  @ApiResponse({ status: 200, description: 'User successfully updated.' })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid input data or user not found.',
+  })
+  @ApiResponse({ status: 404, description: 'User not found.' })
+  updateUserByPhone(
+    @Param('phoneNumber') phoneNumber: string,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    return this.usersService.updateByPhone(phoneNumber, updateUserDto);
+  }
+
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a user by ID' })
   @ApiResponse({ status: 200, description: 'User successfully deleted.' })
