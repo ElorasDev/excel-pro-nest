@@ -6,11 +6,13 @@ import {
   Put,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('Users')
 @Controller('users')
@@ -58,6 +60,7 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   @ApiOperation({ summary: 'Get all users' })
   @ApiResponse({ status: 200, description: 'List of users.' })
@@ -65,6 +68,7 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   @ApiOperation({ summary: 'Get a user by ID' })
   @ApiResponse({ status: 200, description: 'User data.' })
@@ -91,6 +95,21 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'User not found.' })
   updateUser(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(+id, updateUserDto);
+  }
+
+  @Put('phone/:phoneNumber')
+  @ApiOperation({ summary: 'Update a user by ID' })
+  @ApiResponse({ status: 200, description: 'User successfully updated.' })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid input data or user not found.',
+  })
+  @ApiResponse({ status: 404, description: 'User not found.' })
+  updateUserByPhone(
+    @Param('phoneNumber') phoneNumber: string,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    return this.usersService.updateByPhone(phoneNumber, updateUserDto);
   }
 
   @Delete(':id')

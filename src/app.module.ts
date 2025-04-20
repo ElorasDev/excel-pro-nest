@@ -23,6 +23,7 @@ dotenv.config({ path: '.env.local' });
     TypeOrmModule.forRoot(pool),
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: '.env.local',
       load: [redisConfig],
     }),
     JwtModule.register({

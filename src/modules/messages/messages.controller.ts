@@ -3,12 +3,12 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   ParseUUIDPipe,
   HttpStatus,
   HttpCode,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -19,14 +19,15 @@ import {
 } from '@nestjs/swagger';
 import { MessagesService } from './messages.service';
 import { CreateMessageDto } from './dto/create-message.dto';
-import { UpdateMessageDto } from './dto/update-message.dto';
 import { Message } from './entities/message.entity';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('messages')
 @Controller('messages')
 export class MessagesController {
   constructor(private readonly messagesService: MessagesService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   @ApiOperation({
     summary: 'Get all messages',
@@ -41,6 +42,7 @@ export class MessagesController {
     return this.messagesService.findAll();
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   @ApiOperation({
     summary: 'Get a message by ID',
@@ -77,32 +79,6 @@ export class MessagesController {
   @ApiResponse({ status: 400, description: 'Bad request' })
   create(@Body() createMessageDto: CreateMessageDto): Promise<Message> {
     return this.messagesService.create(createMessageDto);
-  }
-
-  @Patch(':id')
-  @ApiOperation({
-    summary: 'Update a message',
-    description: 'Updates an existing message with the provided data',
-  })
-  @ApiParam({
-    name: 'id',
-    description: 'Message unique identifier',
-    type: 'string',
-    format: 'uuid',
-  })
-  @ApiBody({ type: UpdateMessageDto })
-  @ApiResponse({
-    status: 200,
-    description: 'Message successfully updated',
-    type: Message,
-  })
-  @ApiResponse({ status: 404, description: 'Message not found' })
-  @ApiResponse({ status: 400, description: 'Bad request' })
-  update(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateMessageDto: UpdateMessageDto,
-  ): Promise<Message> {
-    return this.messagesService.update(id, updateMessageDto);
   }
 
   @Delete(':id')

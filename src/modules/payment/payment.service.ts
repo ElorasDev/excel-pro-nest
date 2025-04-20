@@ -18,6 +18,7 @@ import { ConfigService } from '@nestjs/config';
 import { CreateSubscriptionDto } from './dto/CreateSubscription.dto';
 import { PaymentStatus } from './entities/enums/payment-status.enum';
 import { SubscriptionPlan } from '../users/entities/enums/enums';
+import { PaymentResponseDto } from './dto/get-payment.dto';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
 
@@ -54,7 +55,6 @@ export class PaymentsService {
   async createSubscription(
     dto: CreateSubscriptionDto,
   ): Promise<SubscriptionResponseDto> {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { priceId, userId, paymentMethodId, email, planId } = dto;
 
     this.logger.log(
@@ -907,7 +907,7 @@ Thank you for choosing us!`,
    */
   private async sendExpiredSubscriptionReminders() {
     const today = new Date();
-    today.setHours(0, 10, 0, 0);
+    today.setHours(0, 9, 0, 0);
 
     this.logger.log(
       `Checking for expired subscriptions as of ${format(today, 'yyyy-MM-dd')}`,
@@ -1097,5 +1097,30 @@ Thank you for choosing us!`,
     this.logger.log(
       `🔔 TEST REMINDER: Hi ${user.fullname}, this is a test reminder that your ${subscription.plan} subscription will expire on ${format(subscription.subscriptionEndDate, 'yyyy-MM-dd')}. Please renew to continue enjoying our services.`,
     );
+  }
+
+  async findAllWithUsers(): Promise<PaymentResponseDto[]> {
+    const payments = await this.paymentRepository.find({
+      relations: ['user'],
+      order: { createdAt: 'DESC' },
+    });
+
+    return payments.map((payment) => ({
+      id: payment.id,
+      amount: +payment.amount,
+      currency: payment.currency,
+      status: payment.status,
+      subscriptionPlan: payment.plan,
+      userEmail: payment.user.email,
+      phone_number: payment.user.phone_number,
+      stripeSubscriptionId: payment.stripeSubscriptionId,
+      stripeCustomerId: payment.stripeCustomerId,
+      userId: payment.userId,
+      fullname: payment.user.fullname,
+      isFirstTimePayment: payment.isFirstTimePayment,
+      subscriptionEndDate: payment.subscriptionEndDate,
+      createdAt: payment.createdAt,
+      updatedAt: payment.updatedAt,
+    }));
   }
 }

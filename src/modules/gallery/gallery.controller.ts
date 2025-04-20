@@ -35,9 +35,9 @@ export class GalleryController {
   @Post()
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: memoryStorage(), // استفاده از حافظه به جای دیسک
+      storage: memoryStorage(),
       limits: {
-        fileSize: 10 * 1024 * 1024, // محدودیت 10 مگابایت
+        fileSize: 10 * 1024 * 1024,
       },
     }),
   )

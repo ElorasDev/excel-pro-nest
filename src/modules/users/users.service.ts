@@ -2,9 +2,9 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { RedisService } from 'src/common/db/redis.service';
+import { RedisService } from '../../common/db/redis.service';
 import { User } from './entities/user.entity';
-import { otpGenerator } from 'src/common/utils/otp-generator';
+import { otpGenerator } from '../../common/utils/otp-generator';
 import { TwilioService } from '../sms/sms.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 
@@ -27,8 +27,8 @@ export class UsersService {
     try {
       // Send OTP via Twilio
       await this.twilioService.sendSMS(
-        `Your verification code is: ${otp}`,
         phone_number,
+        `Your verification code is: ${otp}`,
       );
 
       return {
@@ -117,6 +117,22 @@ export class UsersService {
 
   async update(id: number, updateUserDto: UpdateUserDto) {
     const user = await this.userRpository.findOne({ where: { id } });
+
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    // Update user properties with the values from updateUserDto
+    Object.assign(user, updateUserDto);
+
+    // Save the updated user
+    await this.userRpository.save(user);
+
+    return user;
+  }
+
+  async updateByPhone(phone_number: string, updateUserDto: UpdateUserDto) {
+    const user = await this.userRpository.findOne({ where: { phone_number } });
 
     if (!user) {
       throw new BadRequestException('User not found');
