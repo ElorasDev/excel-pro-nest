@@ -688,7 +688,7 @@ Thank you for choosing us!`,
       // یافتن پرداخت و به‌روزرسانی وضعیت
       const payment = await this.paymentRepository.findOne({
         where: { stripeSubscriptionId: subscriptionId },
-        relations: ['users'],
+        relations: ['user'],
       });
 
       if (!payment) {
@@ -785,7 +785,7 @@ Thank you for choosing us!`,
     try {
       const payment = await this.paymentRepository.findOne({
         where: { stripeSubscriptionId: subscription.id },
-        relations: ['users'],
+        relations: ['user'],
       });
 
       if (!payment) {
@@ -857,7 +857,7 @@ Thank you for choosing us!`,
           status: PaymentStatus.ACTIVE,
           reminderSent: false,
         },
-        relations: ['users'],
+        relations: ['user'],
       });
 
       // فیلتر کردن پرداخت‌ها با subscriptionEndDate در محدوده هدف
@@ -920,7 +920,7 @@ Thank you for choosing us!`,
           status: PaymentStatus.ACTIVE,
           expiredReminderCount: LessThan(7), // کمتر از 7 یادآوری ارسال شده
         },
-        relations: ['users'],
+        relations: ['user'],
       });
 
       // فیلتر کردن پرداخت‌هایی که منقضی شده‌اند
@@ -1038,7 +1038,7 @@ Thank you for choosing us!`,
           user: { id: userId },
           status: PaymentStatus.ACTIVE,
         },
-        relations: ['users'],
+        relations: ['user'],
       });
 
       if (subscription && subscription.subscriptionEndDate) {
@@ -1101,7 +1101,7 @@ Thank you for choosing us!`,
 
   async findAllWithUsers(): Promise<PaymentResponseDto[]> {
     const payments = await this.paymentRepository.find({
-      relations: ['users'],
+      relations: ['user'],
       order: { createdAt: 'DESC' },
     });
 
