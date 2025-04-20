@@ -857,7 +857,7 @@ Thank you for choosing us!`,
           status: PaymentStatus.ACTIVE,
           reminderSent: false,
         },
-        relations: ['user'],
+        relations: ['users'],
       });
 
       // فیلتر کردن پرداخت‌ها با subscriptionEndDate در محدوده هدف
