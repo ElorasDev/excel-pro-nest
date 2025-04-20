@@ -61,7 +61,7 @@ export class PaymentController {
     await this.paymentsService.handleSubscriptionReminders();
     return {
       success: true,
-      message: 'Subscription reminders processed successfully',
+      message: 'Subscription reminders processed successfully ',
     };
   }
 }
