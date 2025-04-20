@@ -907,7 +907,7 @@ Thank you for choosing us!`,
    */
   private async sendExpiredSubscriptionReminders() {
     const today = new Date();
-    today.setHours(0, 10, 0, 0);
+    today.setHours(0, 9, 0, 0);
 
     this.logger.log(
       `Checking for expired subscriptions as of ${format(today, 'yyyy-MM-dd')}`,
