@@ -50,4 +50,18 @@ export class PaymentController {
   async getAllPayments(): Promise<PaymentResponseDto[]> {
     return this.paymentsService.findAllWithUsers();
   }
+
+  @Post('cron/subscription-reminders')
+  @ApiOperation({ summary: 'Run subscription reminder job' })
+  @ApiResponse({
+    status: 200,
+    description: 'Subscription reminders processed successfully',
+  })
+  async runSubscriptionReminders() {
+    await this.paymentsService.handleSubscriptionReminders();
+    return {
+      success: true,
+      message: 'Subscription reminders processed successfully',
+    };
+  }
 }

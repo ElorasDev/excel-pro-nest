@@ -16,5 +16,11 @@
       "src": "/(.*)",
       "dest": "src/main.ts"
     }
+  ],
+  "crons": [
+    {
+      "path": "/payments/cron/subscription-reminders",
+      "schedule": "0 9 * * *"
+    }
   ]
 }
