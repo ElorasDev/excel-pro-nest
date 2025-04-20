@@ -58,7 +58,9 @@ export class PaymentController {
     description: 'Subscription reminders processed successfully',
   })
   async runSubscriptionReminders() {
+    console.log('Cron job started at', new Date().toISOString());
     await this.paymentsService.handleSubscriptionReminders();
+    console.log('Cron job finished at', new Date().toISOString());
     return {
       success: true,
       message: 'Subscription reminders processed successfully ',
