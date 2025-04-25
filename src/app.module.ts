@@ -10,12 +10,14 @@ import { UsersModule } from './modules/users/users.module';
 import { ProgramsModule } from './modules/programs/programs.module';
 import { PaymentModule } from './modules/payment/payment.module';
 import { MatchesModule } from './modules/matches/matches.module';
+import { PlayerMonthModule } from './modules/player_month/player_month.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { SmsModule } from './modules/sms/sms.module';
 import { MessagesModule } from './modules/messages/messages.module';
 import { GalleryModule } from './modules/gallery/gallery.module';
 import * as dotenv from 'dotenv';
 import { JwtModule } from '@nestjs/jwt';
+import { TransferModule } from './modules/transfer/transfer.module';
 
 dotenv.config({ path: '.env.local' });
 @Module({
@@ -41,6 +43,8 @@ dotenv.config({ path: '.env.local' });
     SmsModule,
     MessagesModule,
     GalleryModule,
+    PlayerMonthModule,
+    TransferModule,
   ],
 })
 export class AppModule implements NestModule {

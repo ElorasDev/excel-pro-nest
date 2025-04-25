@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Twilio } from 'twilio'; // ✅ درستش اینه
+import { Twilio } from 'twilio';
 
 @Injectable()
 export class TwilioService {
