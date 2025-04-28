@@ -24,37 +24,37 @@ export class TransferService {
     private notificationsService: NotificationsService,
   ) {}
 
-  // مشکل اصلی: وقتی کاربر دوم ثبت نام می‌کند، اطلاعات به نام کاربر اول ثبت می‌شود
-  // راه‌حل: تایید دقیق تر کاربر با استفاده از شماره تلفن و نام کامل
+  // MAIN ISSUE: When the second user registers, information is recorded under the first user's name
+  // SOLUTION: More precise user verification using phone number and full name
 
   // Create a new transfer request
   async createTransfer(
     userId: number,
     createTransferDto: CreateTransferDto,
   ): Promise<Transfer> {
-    // اطمینان از اینکه userId معتبر است
+    // Ensure userId is valid
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
 
-    // تایید مجدد کاربر با استفاده از اطلاعات ارسالی اضافی (در صورت وجود)
+    // Additional verification of user identity with provided information (if exists)
     if (createTransferDto.fullname && createTransferDto.phone_number) {
-      // تایید اینکه کاربر یافت شده همان کاربری است که اطلاعات آن ارسال شده
+      // Verify that the found user matches the information provided
       if (
         user.fullname?.toLowerCase() !==
           createTransferDto.fullname.toLowerCase() ||
         user.phone_number !== createTransferDto.phone_number
       ) {
-        // حذف لاگ حساس اطلاعات کاربر
+        // Remove sensitive user information logs
         throw new ConflictException(
           'User information does not match our records. Please contact support.',
         );
       }
     }
 
-    // این خط باید حذف شود:
-    // activePlan فقط باید بعد از تأیید پرداخت توسط ادمین به‌روزرسانی شود، نه الان
+    // This line should be removed:
+    // activePlan should only be updated after payment confirmation by admin, not now
     // await this.userRepository.update(user.id, {
     //   activePlan: createTransferDto.plan,
     // });
@@ -92,13 +92,13 @@ export class TransferService {
       status: TransferStatus.PENDING,
     });
 
-    // اصلاح: اطمینان از صحت مبلغ دریافتی
+    // FIX: Ensure the received amount is correct
     if (isFirstTimePayment && transfer.amount < 400) {
-      // حذف لاگ حساس حاوی اطلاعات مبلغ
-      transfer.amount = 425; // مبلغ ثابت برای ثبت نام اول
+      // Remove sensitive logs containing amount information
+      transfer.amount = 425; // Fixed amount for first-time registration
     } else if (!isFirstTimePayment && transfer.amount < 300) {
-      // حذف لاگ حساس حاوی اطلاعات مبلغ
-      transfer.amount = 350; // مبلغ ثابت برای تمدید
+      // Remove sensitive logs containing amount information
+      transfer.amount = 350; // Fixed amount for renewal
     }
 
     const savedTransfer = await this.transferRepository.save(transfer);
@@ -186,7 +186,7 @@ export class TransferService {
       throw new NotFoundException('Transfer not found');
     }
 
-    // حتماً کاربر مرتبط با ترنسفر را پیدا کنیم
+    // Make sure we find the user associated with the transfer
     const user = await this.userRepository.findOne({
       where: { id: transfer.userId },
     });
@@ -214,7 +214,7 @@ export class TransferService {
       if (transfer.isFirstTimePayment && transfer.user.isTemporary) {
         try {
           await this.userRepository.remove(transfer.user);
-          // حذف لاگ حساس حاوی شناسه کاربر
+          // Remove sensitive log containing user ID
           return transfer;
         } catch (error) {
           console.error('Error deleting temporary user:', error);
@@ -233,14 +233,14 @@ export class TransferService {
     endDate.setMonth(endDate.getMonth() + 2);
     transfer.subscriptionEndDate = endDate;
 
-    // اصلاح: اینجا activePlan به روز می‌شود - بعد از تایید پرداخت
+    // FIX: Here activePlan is updated - after payment confirmation
     const subscriptionCounter = user.subscriptionCounter || 0;
 
     await this.userRepository.update(user.id, {
       activePlan: transfer.plan,
       currentSubscriptionEndDate: endDate,
-      isTemporary: false, // کاربر دیگر موقتی نیست
-      subscriptionCounter: subscriptionCounter + 1, // افزایش شمارنده اشتراک
+      isTemporary: false, // User is no longer temporary
+      subscriptionCounter: subscriptionCounter + 1, // Increment subscription counter
     });
 
     await this.notificationsService.sendPaymentApprovalNotification(
@@ -259,7 +259,7 @@ export class TransferService {
 
   // Get user's transfers
   async getUserTransfers(userId: number): Promise<Transfer[]> {
-    // بررسی صحت کاربر قبل از برگرداندن ترنسفرها
+    // Verify user validity before returning transfers
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);
@@ -324,7 +324,7 @@ export class TransferService {
       if (transfer.isFirstTimePayment && transfer.user.isTemporary) {
         try {
           await this.userRepository.remove(transfer.user);
-          // حذف لاگ حساس حاوی شناسه کاربر
+          // Remove sensitive log containing user ID
         } catch {
           console.error('Error deleting temporary user');
         }
