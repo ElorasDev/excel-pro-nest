@@ -1,18 +1,34 @@
-import { IsEnum, IsNumber, IsOptional, Min } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  IsOptional,
+  IsBoolean,
+} from 'class-validator';
 import { SubscriptionPlan } from '../../users/entities/enums/enums';
 
 export class CreateTransferDto {
-  @IsEnum(SubscriptionPlan)
+  @IsNotEmpty()
+  @IsString()
   plan: SubscriptionPlan;
 
+  @IsNotEmpty()
   @IsNumber()
-  @Min(1)
   amount: number;
 
   @IsOptional()
-  email?: string; // Optional, will use user's email if not provided
-}
+  @IsBoolean()
+  isFirstTime?: boolean;
 
-export class CreateTransferWithUserDto extends CreateTransferDto {
-  userId: number;
+  @IsOptional()
+  @IsString()
+  fullname?: string;
+
+  @IsOptional()
+  @IsString()
+  phone_number?: string;
+
+  @IsOptional()
+  @IsNumber()
+  userId?: number;
 }

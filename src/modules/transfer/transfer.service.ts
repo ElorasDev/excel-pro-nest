@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, IsNull, LessThan, Not, Repository } from 'typeorm';
@@ -23,19 +24,43 @@ export class TransferService {
     private notificationsService: NotificationsService,
   ) {}
 
+  // مشکل اصلی: وقتی کاربر دوم ثبت نام می‌کند، اطلاعات به نام کاربر اول ثبت می‌شود
+  // راه‌حل: تایید دقیق تر کاربر با استفاده از شماره تلفن و نام کامل
+
   // Create a new transfer request
   async createTransfer(
     userId: number,
     createTransferDto: CreateTransferDto,
   ): Promise<Transfer> {
+    // اطمینان از اینکه userId معتبر است
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(`User with ID ${userId} not found`);
     }
 
-    await this.userRepository.update(user.id, {
-      activePlan: createTransferDto.plan,
-    });
+    // تایید مجدد کاربر با استفاده از اطلاعات ارسالی اضافی (در صورت وجود)
+    if (createTransferDto.fullname && createTransferDto.phone_number) {
+      // تایید اینکه کاربر یافت شده همان کاربری است که اطلاعات آن ارسال شده
+      if (
+        user.fullname?.toLowerCase() !==
+          createTransferDto.fullname.toLowerCase() ||
+        user.phone_number !== createTransferDto.phone_number
+      ) {
+        console.error(
+          `User mismatch: Found ID=${userId}, name=${user.fullname}, phone=${user.phone_number} ` +
+            `but received name=${createTransferDto.fullname}, phone=${createTransferDto.phone_number}`,
+        );
+        throw new ConflictException(
+          'User information does not match our records. Please contact support.',
+        );
+      }
+    }
+
+    // این خط باید حذف شود:
+    // activePlan فقط باید بعد از تأیید پرداخت توسط ادمین به‌روزرسانی شود، نه الان
+    // await this.userRepository.update(user.id, {
+    //   activePlan: createTransferDto.plan,
+    // });
 
     // Check if user already has a pending transfer
     const pendingTransfer = await this.transferRepository.findOne({
@@ -57,14 +82,7 @@ export class TransferService {
     expiryDate.setHours(expiryDate.getHours() + 48);
 
     // Check if this is first payment
-    const isFirstTimePayment =
-      (
-        await this.userRepository.findOne({
-          where: { id: userId },
-        })
-      ).subscriptionCounter === 0
-        ? true
-        : false;
+    const isFirstTimePayment = user.subscriptionCounter === 0;
 
     // Create transfer
     const transfer = this.transferRepository.create({
@@ -76,6 +94,19 @@ export class TransferService {
       isFirstTimePayment,
       status: TransferStatus.PENDING,
     });
+
+    // اصلاح: اطمینان از صحت مبلغ دریافتی
+    if (isFirstTimePayment && transfer.amount < 400) {
+      console.warn(
+        `First time payment amount too low: ${transfer.amount}. Setting to 425.`,
+      );
+      transfer.amount = 425; // مبلغ ثابت برای ثبت نام اول
+    } else if (!isFirstTimePayment && transfer.amount < 300) {
+      console.warn(
+        `Renewal payment amount too low: ${transfer.amount}. Setting to 350.`,
+      );
+      transfer.amount = 350; // مبلغ ثابت برای تمدید
+    }
 
     const savedTransfer = await this.transferRepository.save(transfer);
 
@@ -158,12 +189,17 @@ export class TransferService {
       relations: ['user'],
     });
 
+    if (!transfer) {
+      throw new NotFoundException('Transfer not found');
+    }
+
+    // حتماً کاربر مرتبط با ترنسفر را پیدا کنیم
     const user = await this.userRepository.findOne({
       where: { id: transfer.userId },
     });
 
-    if (!transfer) {
-      throw new NotFoundException('Transfer not found');
+    if (!user) {
+      throw new NotFoundException(`User with ID ${transfer.userId} not found`);
     }
 
     if (transfer.status !== TransferStatus.CONFIRMED) {
@@ -206,11 +242,14 @@ export class TransferService {
     endDate.setMonth(endDate.getMonth() + 2);
     transfer.subscriptionEndDate = endDate;
 
-    await this.userRepository.update(transfer.userId, {
+    // اصلاح: اینجا activePlan به روز می‌شود - بعد از تایید پرداخت
+    const subscriptionCounter = user.subscriptionCounter || 0;
+
+    await this.userRepository.update(user.id, {
       activePlan: transfer.plan,
       currentSubscriptionEndDate: endDate,
-      isTemporary: false,
-      subscriptionCounter: user.subscriptionCounter + 1,
+      isTemporary: false, // کاربر دیگر موقتی نیست
+      subscriptionCounter: subscriptionCounter + 1, // افزایش شمارنده اشتراک
     });
 
     await this.notificationsService.sendPaymentApprovalNotification(
@@ -229,6 +268,12 @@ export class TransferService {
 
   // Get user's transfers
   async getUserTransfers(userId: number): Promise<Transfer[]> {
+    // بررسی صحت کاربر قبل از برگرداندن ترنسفرها
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
     return this.transferRepository.find({
       where: { userId },
       order: { createdAt: 'DESC' },

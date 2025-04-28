@@ -10,18 +10,18 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { TransferService } from './transfer.service';
-import { CreateTransferWithUserDto } from './dto/create-transfer.dto';
 import { VerifyTransferDto } from './dto/verify-transfer.dto';
 import { TransferStatus } from './entities/enums/transfer-status.enum';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { CreateTransferDto } from './dto/create-transfer.dto';
 
 @Controller('transfer')
 export class TransferController {
   constructor(private readonly transferService: TransferService) {}
 
   @Post()
-  async createTransfer(@Body() body: CreateTransferWithUserDto) {
+  async createTransfer(@Body() body: CreateTransferDto) {
     const { userId, ...createTransferDto } = body;
     return this.transferService.createTransfer(userId, createTransferDto);
   }
