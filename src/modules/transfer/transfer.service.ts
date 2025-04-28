@@ -46,10 +46,7 @@ export class TransferService {
           createTransferDto.fullname.toLowerCase() ||
         user.phone_number !== createTransferDto.phone_number
       ) {
-        console.error(
-          `User mismatch: Found ID=${userId}, name=${user.fullname}, phone=${user.phone_number} ` +
-            `but received name=${createTransferDto.fullname}, phone=${createTransferDto.phone_number}`,
-        );
+        // حذف لاگ حساس اطلاعات کاربر
         throw new ConflictException(
           'User information does not match our records. Please contact support.',
         );
@@ -97,14 +94,10 @@ export class TransferService {
 
     // اصلاح: اطمینان از صحت مبلغ دریافتی
     if (isFirstTimePayment && transfer.amount < 400) {
-      console.warn(
-        `First time payment amount too low: ${transfer.amount}. Setting to 425.`,
-      );
+      // حذف لاگ حساس حاوی اطلاعات مبلغ
       transfer.amount = 425; // مبلغ ثابت برای ثبت نام اول
     } else if (!isFirstTimePayment && transfer.amount < 300) {
-      console.warn(
-        `Renewal payment amount too low: ${transfer.amount}. Setting to 350.`,
-      );
+      // حذف لاگ حساس حاوی اطلاعات مبلغ
       transfer.amount = 350; // مبلغ ثابت برای تمدید
     }
 
@@ -221,12 +214,10 @@ export class TransferService {
       if (transfer.isFirstTimePayment && transfer.user.isTemporary) {
         try {
           await this.userRepository.remove(transfer.user);
-          console.log(
-            `User ${transfer.user.id} removed due to rejected payment`,
-          );
+          // حذف لاگ حساس حاوی شناسه کاربر
           return transfer;
         } catch (error) {
-          console.error(`Error removing user ${transfer.user.id}:`, error);
+          console.error('Error deleting temporary user:', error);
         }
       }
 
@@ -333,11 +324,9 @@ export class TransferService {
       if (transfer.isFirstTimePayment && transfer.user.isTemporary) {
         try {
           await this.userRepository.remove(transfer.user);
-          console.log(
-            `User ${transfer.user.id} removed due to expired payment`,
-          );
-        } catch (error) {
-          console.error(`Error removing user ${transfer.user.id}:`, error);
+          // حذف لاگ حساس حاوی شناسه کاربر
+        } catch {
+          console.error('Error deleting temporary user');
         }
       }
     }
