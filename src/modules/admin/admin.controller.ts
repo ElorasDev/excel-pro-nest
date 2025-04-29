@@ -8,6 +8,7 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { UpdateAdminDto } from './dto/update-admin.dto';
@@ -20,6 +21,7 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { Admin } from '../auth/entities/admin.entity';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('Admin')
 @Controller('admin')
@@ -39,6 +41,7 @@ export class AdminController {
     return this.adminService.create(createAdminDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   @ApiOperation({ summary: 'Get all admins' })
   @ApiResponse({ status: 200, description: 'List of admins', type: [Admin] })
@@ -46,6 +49,7 @@ export class AdminController {
     return this.adminService.findAll();
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   @ApiOperation({ summary: 'Get one admin by ID' })
   @ApiParam({ name: 'id', type: Number })
@@ -55,6 +59,7 @@ export class AdminController {
     return this.adminService.findOne(+id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   @ApiOperation({ summary: 'Update an admin by ID' })
   @ApiParam({ name: 'id', type: Number })
