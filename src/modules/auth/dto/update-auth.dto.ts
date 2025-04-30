@@ -1,9 +1,50 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateAuthDto } from './create-auth.dto';
-import { IsString, IsOptional } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+// فایل update-auth.dto.ts
 
-export class UpdateAuthDto extends PartialType(CreateAuthDto) {
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
+
+export class UpdateAuthDto {
+  @ApiProperty({
+    description: 'Admin username',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  username?: string;
+
+  @ApiProperty({
+    description: 'Admin email',
+    required: false,
+  })
+  @IsEmail()
+  @IsOptional()
+  email?: string;
+
+  @ApiProperty({
+    description: 'Admin password',
+    required: false,
+  })
+  @IsString()
+  @MinLength(6)
+  @IsOptional()
+  password?: string;
+
+  @ApiProperty({
+    description: 'Admin first name',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  first_name?: string;
+
+  @ApiProperty({
+    description: 'Admin last name',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  last_name?: string;
+
   @ApiProperty({
     description: 'Current password for validation',
     required: false,

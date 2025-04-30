@@ -49,7 +49,7 @@ export class NotificationsService {
         return;
       }
 
-      const message = `⚠️ New Payment Confirmation:\n\nID: ${transferId}\nUser: ${userName}\nAmount: $${amount}\nPlan: ${plan}\n\nPlease verify the payment in admin panel.`;
+      const message = `⚠️ New Payment Confirmation:\n\nID: ${transferId}\nUser: ${userName}\nAmount: $${amount}\nPlan: ${plan}\n\nPlease verify the payment in admin panel. please verify the payment in admin panel. please check your email for more details.`;
 
       for (const adminPhone of adminPhones) {
         await this.twilioService.sendSMS(adminPhone.trim(), message);
