@@ -16,6 +16,7 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'https://excel-pro-next-git-develop-eloras-dev.vercel.app',
+      'https://excel-pro-next.vercel.app',
       'http://localhost:3000',
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
