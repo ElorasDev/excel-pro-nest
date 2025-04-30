@@ -6,6 +6,7 @@ import {
   IsEnum,
   IsOptional,
   IsBoolean,
+  IsEmpty,
 } from 'class-validator';
 import {
   Gender,
@@ -101,9 +102,9 @@ export class CreateUserDto {
   medical_conditions: string;
 
   @ApiProperty({ description: 'Additional comments' })
-  @IsNotEmpty()
+  @IsEmpty()
   @IsString()
-  comments: string;
+  comments?: string;
 
   @ApiProperty({ description: 'Liability waiver agreement' })
   @IsNotEmpty()

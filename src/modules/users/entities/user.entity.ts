@@ -81,8 +81,8 @@ export class User {
   @Column({ type: 'text' })
   medical_conditions: string;
 
-  @Column({ type: 'text' })
-  comments: string;
+  @Column({ type: 'text', nullable: true })
+  comments?: string;
 
   @Column()
   liability_waiver: boolean;
