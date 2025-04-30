@@ -22,6 +22,7 @@ import {
 } from '@nestjs/swagger';
 import { Admin } from '../auth/entities/admin.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { UpdateAuthDto } from '../auth/dto/update-auth.dto';
 
 @ApiTags('Admin')
 @Controller('admin')
@@ -70,7 +71,7 @@ export class AdminController {
     type: Admin,
   })
   @ApiResponse({ status: 404, description: 'Admin not found' })
-  update(@Param('id') id: string, @Body() updateAdminDto: UpdateAdminDto) {
+  update(@Param('id') id: string, @Body() updateAdminDto: UpdateAuthDto) {
     return this.adminService.update(+id, updateAdminDto);
   }
 
