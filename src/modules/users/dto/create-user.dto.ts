@@ -2,19 +2,19 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsNotEmpty,
   IsString,
-  IsNumber,
   IsEnum,
   IsOptional,
   IsBoolean,
-  IsEmpty,
+  MaxLength,
 } from 'class-validator';
 import {
   Gender,
   SkillLevel,
   PlayerPosition,
-  AvailableDays,
-  PreferredTime,
+  TShirtSize,
+  ExperienceLevel,
 } from '../entities/enums/enums';
+import { Transform } from 'class-transformer';
 
 export class CreateUserDto {
   @ApiProperty({ description: 'Full name of the user' })
@@ -22,10 +22,133 @@ export class CreateUserDto {
   @IsString()
   fullname: string;
 
-  @ApiProperty({ description: 'Age of the user', example: 25 })
+  @ApiProperty({
+    description: 'Date of birth of the user',
+    example: '1990-01-01',
+  })
   @IsNotEmpty()
-  @IsNumber()
-  age: number;
+  @IsString()
+  dateOfBirth: string;
+
+  @ApiProperty({ description: 'Height in Centimeter (CM)', example: 175 })
+  @IsNotEmpty()
+  @IsString()
+  height: string;
+
+  @ApiProperty({ description: 'Weight in Kilo Gram (KG)', example: 70 })
+  @IsNotEmpty()
+  @IsString()
+  weight: string;
+
+  @ApiProperty({
+    description: 'T-Shirt Size (Jersey). For youth size use: YM OR YL',
+    enum: TShirtSize,
+    example: TShirtSize.M,
+  })
+  @IsNotEmpty()
+  @IsEnum(TShirtSize)
+  tShirtSize: TShirtSize;
+
+  @ApiProperty({
+    description: 'Short Size',
+    enum: TShirtSize, // Reusing the same enum
+    example: TShirtSize.M,
+  })
+  @IsNotEmpty()
+  @IsEnum(TShirtSize)
+  shortSize: TShirtSize;
+
+  @ApiProperty({
+    description: 'Jacket Size',
+    enum: TShirtSize, // Reusing the same enum
+    example: TShirtSize.M,
+  })
+  @IsNotEmpty()
+  @IsEnum(TShirtSize)
+  jacketSize: TShirtSize;
+
+  @ApiProperty({
+    description: 'Pants Size',
+    enum: TShirtSize, // Reusing the same enum
+    example: TShirtSize.M,
+  })
+  @IsNotEmpty()
+  @IsEnum(TShirtSize)
+  pantsSize: TShirtSize;
+
+  @ApiProperty({
+    description:
+      'Full address including street, city, state, postal code, etc.',
+    example: '123 Main Street, Apartment 4B, New York, NY 10001',
+  })
+  @IsNotEmpty()
+  @IsString()
+  @MaxLength(500)
+  address: string;
+
+  @ApiProperty({
+    description: 'Postal Code',
+    example: '10001',
+  })
+  @IsNotEmpty()
+  @IsString()
+  @MaxLength(20)
+  postalCode: string;
+
+  @ApiProperty({
+    description: 'City',
+    example: 'New York',
+  })
+  @IsNotEmpty()
+  @IsString()
+  @MaxLength(100)
+  city: string;
+
+  @ApiProperty({
+    description: 'Emergency Contact Name',
+    example: 'John Doe',
+  })
+  @IsNotEmpty()
+  @IsString()
+  @MaxLength(200)
+  emergencyContactName: string;
+
+  @ApiProperty({
+    description: 'Emergency Phone Number',
+    example: '+1-555-123-4567',
+  })
+  @IsNotEmpty()
+  @IsString()
+  @MaxLength(20)
+  emergencyPhone: string;
+
+  @ApiProperty({
+    description: 'Experience Level',
+    enum: ExperienceLevel,
+    example: ExperienceLevel.INTERMEDIATE,
+    required: false,
+  })
+  @IsNotEmpty()
+  @IsEnum(ExperienceLevel)
+  experienceLevel?: ExperienceLevel;
+
+  @ApiProperty({
+    description: 'Profile photo in base64 format',
+    example: 'data:image/jpeg;base64,/9j/4AAQSkZ...',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  photoUrl?: string;
+
+  @ApiProperty({
+    description: 'National ID card photo in base64 format',
+    example: 'data:image/jpeg;base64,/9j/4AAQSkZ...',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  NationalIdCard?: string;
 
   @ApiProperty({ enum: Gender, description: 'Gender of the user' })
   @IsNotEmpty()
@@ -75,51 +198,11 @@ export class CreateUserDto {
   @IsString()
   custom_position?: string;
 
-  @ApiProperty({ description: 'Goals for the session' })
-  @IsNotEmpty()
-  @IsString()
-  session_goals: string;
-
-  @ApiProperty({
-    enum: AvailableDays,
-    description: 'Available days for training',
-  })
-  @IsNotEmpty()
-  @IsEnum(AvailableDays)
-  available_days: AvailableDays;
-
-  @ApiProperty({
-    enum: PreferredTime,
-    description: 'Preferred time for training',
-  })
-  @IsNotEmpty()
-  @IsEnum(PreferredTime)
-  preferred_time: PreferredTime;
-
-  @ApiProperty({ description: 'Medical conditions of the user' })
-  @IsNotEmpty()
-  @IsString()
-  medical_conditions: string;
-
-  @ApiProperty({ description: 'Additional comments' })
-  @IsEmpty()
-  @IsString()
-  comments?: string;
-
-  @ApiProperty({ description: 'Liability waiver agreement' })
-  @IsNotEmpty()
-  @IsBoolean()
-  liability_waiver: boolean;
-
   @ApiProperty({ description: 'Cancellation policy agreement' })
   @IsNotEmpty()
+  @Transform(({ value }) => value === 'true')
   @IsBoolean()
-  cancellation_policy: boolean;
-
-  @ApiProperty({ description: 'Program', example: 'U15-U17' })
-  @IsNotEmpty()
-  @IsString()
-  program: string;
+  policy: boolean;
 
   @IsOptional()
   @IsString()
