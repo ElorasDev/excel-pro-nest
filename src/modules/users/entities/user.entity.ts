@@ -8,11 +8,11 @@ import {
 } from 'typeorm';
 import { Payment } from 'src/modules/payment/entities/payment.entity';
 import {
-  AvailableDays,
+  ExperienceLevel,
   Gender,
   PlayerPosition,
-  PreferredTime,
   SkillLevel,
+  TShirtSize,
 } from './enums/enums';
 
 @Entity('users')
@@ -24,7 +24,64 @@ export class User {
   fullname: string;
 
   @Column()
-  age: number;
+  dateOfBirth: string;
+
+  @Column()
+  height: number;
+
+  @Column()
+  weight: number;
+
+  @Column({
+    type: 'enum',
+    enum: TShirtSize,
+  })
+  tShirtSize: TShirtSize;
+
+  @Column({
+    type: 'enum',
+    enum: TShirtSize,
+  })
+  shortSize: TShirtSize;
+
+  @Column({
+    type: 'enum',
+    enum: TShirtSize,
+  })
+  jacketSize: TShirtSize;
+
+  @Column({
+    type: 'enum',
+    enum: TShirtSize,
+  })
+  pantsSize: TShirtSize;
+
+  @Column({ type: 'text' })
+  address: string;
+
+  @Column()
+  postalCode: string;
+
+  @Column()
+  city: string;
+
+  @Column()
+  emergencyContactName: string;
+
+  @Column()
+  emergencyPhone: string;
+
+  @Column({
+    type: 'enum',
+    enum: ExperienceLevel,
+  })
+  experienceLevel: ExperienceLevel;
+
+  @Column({ nullable: false })
+  photoUrl: string;
+
+  @Column({ nullable: false })
+  NationalIdCard: string;
 
   @Column({
     type: 'enum',
@@ -44,9 +101,6 @@ export class User {
   @Column({ type: 'text' })
   email: string;
 
-  @Column({ type: 'text', nullable: false })
-  program: string;
-
   @Column({
     type: 'enum',
     enum: SkillLevel,
@@ -63,32 +117,8 @@ export class User {
   @Column({ type: 'varchar', length: 50, nullable: true })
   custom_position?: string;
 
-  @Column({ type: 'text' })
-  session_goals: string;
-
-  @Column({
-    type: 'enum',
-    enum: AvailableDays,
-  })
-  available_days: AvailableDays;
-
-  @Column({
-    type: 'enum',
-    enum: PreferredTime,
-  })
-  preferred_time: PreferredTime;
-
-  @Column({ type: 'text' })
-  medical_conditions: string;
-
-  @Column({ type: 'text', nullable: true })
-  comments?: string;
-
   @Column()
-  liability_waiver: boolean;
-
-  @Column()
-  cancellation_policy: boolean;
+  policy: boolean;
 
   @Column({ type: 'text', nullable: true })
   stripeCustomerId: string;
