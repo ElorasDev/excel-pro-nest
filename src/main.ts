@@ -18,13 +18,18 @@ async function bootstrap() {
     'https://excel-pro-next.vercel.app',
     'http://localhost:3000',
     'https://excelproso.com',
+    'https://www.excelproso.com',
   ];
   //
   app.enableCors({
     origin: (origin, callback) => {
+      console.log(`Origin trying to access: ${origin}`);
+      console.log(`Allowed origins: ${allowedOrigins}`);
       if (!origin || allowedOrigins.includes(origin)) {
+        console.log(`Access granted for origin: ${origin}`);
         callback(null, true);
       } else {
+        console.log(`Access denied for origin: ${origin}`);
         callback(new Error(`CORS error: Origin ${origin} not allowed`));
       }
     },
