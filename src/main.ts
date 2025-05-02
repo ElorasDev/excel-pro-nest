@@ -18,7 +18,6 @@ async function bootstrap() {
     'https://excel-pro-next.vercel.app',
     'http://localhost:3000',
     'https://excelproso.com',
-    'https://www.excelproso.com',
   ];
   //
   app.enableCors({
