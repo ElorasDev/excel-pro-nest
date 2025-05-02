@@ -18,6 +18,8 @@ async function bootstrap() {
       'https://excel-pro-next-git-develop-eloras-dev.vercel.app',
       'https://excel-pro-next.vercel.app',
       'http://localhost:3000',
+      'https://excelproso.com',
+      'https://www.excelproso.com',
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: [
