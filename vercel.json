@@ -1,12 +1,5 @@
 {
   "version": 2,
-  "redirects": [
-    {
-      "source": "/(.*)",
-      "destination": "https://excelproso.com/$1",
-      "permanent": true
-    }
-  ],
   "builds": [
     {
       "src": "src/main.ts",
