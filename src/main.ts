@@ -20,7 +20,7 @@ async function bootstrap() {
     'https://excelproso.com',
     'https://www.excelproso.com',
   ];
-
+  //
   app.enableCors({
     origin: (origin, callback) => {
       if (!origin || allowedOrigins.includes(origin)) {
