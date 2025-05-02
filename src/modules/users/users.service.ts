@@ -14,7 +14,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { UploadPhotoDto } from './dto/upload-photo.dto';
 import { createClient } from '@supabase/supabase-js';
 import { ConfigService } from '@nestjs/config';
-import { generateSevenDigitRandomNumber } from 'src/common/utils/random';
+import { generateSevenDigitRandomNumber } from '../../common/utils/random';
 
 @Injectable()
 export class UsersService {
