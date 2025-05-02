@@ -14,8 +14,18 @@ export class TwilioService {
 
   async sendSMS(to: string, message: string): Promise<any> {
     try {
-      const formattedPhoneNumber = this.formatPhoneNumber(to);
-      console.log(message);
+      // Try to format the phone number
+      let formattedPhoneNumber;
+      try {
+        formattedPhoneNumber = this.formatPhoneNumber(to);
+      } catch (formatError) {
+        // Return a meaningful error if formatting fails
+        console.error('Phone number format error:', formatError.message);
+        throw new Error(`Phone number format error: ${formatError.message}`);
+      }
+
+      console.log(`Sending message to ${formattedPhoneNumber}: ${message}`);
+
       const response = await this.twilioClient.messages.create({
         body: message,
         from: process.env.TWILIO_PHONE_NUMBER,
@@ -30,20 +40,54 @@ export class TwilioService {
   }
 
   private formatPhoneNumber(phone: string): string {
+    // Remove spaces and invalid characters
     const cleanedPhone = phone.replace(/\s+/g, '').replace(/[^\d+]/g, '');
 
-    if (cleanedPhone.startsWith('+')) return cleanedPhone;
-    if (cleanedPhone.length === 10) return '+1' + cleanedPhone;
-    if (cleanedPhone.startsWith('1') && cleanedPhone.length === 11)
+    // If the number starts with +, it's probably in international format
+    if (cleanedPhone.startsWith('+')) {
+      // Check minimum length for a valid international number (country code + at least 7 digits)
+      if (cleanedPhone.length >= 9) {
+        return cleanedPhone;
+      } else {
+        throw new Error(`Phone number '${phone}' is too short`);
+      }
+    }
+
+    // US numbers (10 digits)
+    if (cleanedPhone.length === 10) {
+      return '+1' + cleanedPhone;
+    }
+
+    // US numbers with prefix 1 (11 digits)
+    if (cleanedPhone.startsWith('1') && cleanedPhone.length === 11) {
       return '+' + cleanedPhone;
+    }
+
+    // Iranian numbers (starting with 0 and 11 digits like 0912XXXXXXX)
+    if (cleanedPhone.startsWith('0') && cleanedPhone.length === 11) {
+      return '+98' + cleanedPhone.substring(1); // Remove leading 0 and add +98
+    }
+
+    // German numbers (starting with 0 and length between 10 and 12)
     if (
       cleanedPhone.startsWith('0') &&
       cleanedPhone.length >= 10 &&
       cleanedPhone.length <= 12
-    )
+    ) {
       return '+49' + cleanedPhone.substring(1);
-    if (cleanedPhone.startsWith('49')) return '+' + cleanedPhone;
+    }
 
-    return '+1' + cleanedPhone;
+    // Number with prefix 49 (Germany)
+    if (cleanedPhone.startsWith('49')) {
+      return '+' + cleanedPhone;
+    }
+
+    // Number with prefix 98 (Iran)
+    if (cleanedPhone.startsWith('98')) {
+      return '+' + cleanedPhone;
+    }
+
+    // If we get here, we can't properly format the number
+    throw new Error(`Invalid phone number format: '${phone}'`);
   }
 }
