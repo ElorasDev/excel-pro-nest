@@ -13,14 +13,23 @@ dotenv.config({ path: '.env.local' });
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  const allowedOrigins = [
+    'https://excel-pro-next-git-develop-eloras-dev.vercel.app',
+    'https://excel-pro-next.vercel.app',
+    'http://localhost:3000',
+    'https://excelproso.com',
+    'https://www.excelproso.com',
+  ];
+
   app.enableCors({
-    origin: [
-      'https://excel-pro-next-git-develop-eloras-dev.vercel.app',
-      'https://excel-pro-next.vercel.app',
-      'http://localhost:3000',
-      'https://excelproso.com',
-      'https://www.excelproso.com',
-    ],
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS error: Origin ${origin} not allowed`));
+      }
+    },
+    credentials: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: [
       'Content-Type',
@@ -28,7 +37,6 @@ async function bootstrap() {
       'Access-Control-Allow-Methods',
       'Access-Control-Request-Headers',
     ],
-    credentials: true,
   });
 
   app.useGlobalPipes(
