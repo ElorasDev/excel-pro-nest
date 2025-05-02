@@ -11,7 +11,6 @@ import {
   ExperienceLevel,
   Gender,
   PlayerPosition,
-  SkillLevel,
   TShirtSize,
 } from './enums/enums';
 
@@ -100,12 +99,6 @@ export class User {
 
   @Column({ type: 'text' })
   email: string;
-
-  @Column({
-    type: 'enum',
-    enum: SkillLevel,
-  })
-  current_skill_level: SkillLevel;
 
   @Column({
     type: 'enum',

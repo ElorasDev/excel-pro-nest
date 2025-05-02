@@ -14,6 +14,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { UploadPhotoDto } from './dto/upload-photo.dto';
 import { createClient } from '@supabase/supabase-js';
 import { ConfigService } from '@nestjs/config';
+import { generateSevenDigitRandomNumber } from 'src/common/utils/random';
 
 @Injectable()
 export class UsersService {
@@ -68,11 +69,25 @@ export class UsersService {
     return { success: true };
   }
 
+  private getBase64MimeType(base64String: string): {
+    extension: string;
+    contentType: string;
+  } {
+    const result = /^data:(image\/[a-zA-Z]+);base64,/.exec(base64String);
+    if (!result) {
+      throw new BadRequestException('Invalid base64 image string');
+    }
+
+    const contentType = result[1];
+    const extension = contentType.split('/')[1];
+
+    return { extension, contentType };
+  }
+
   // New method for creating user with base64 images
   async createWithBase64(createUserDto: CreateUserDto): Promise<User> {
     try {
       console.log('Creating user with base64 image data');
-
       const {
         fullname,
         address,
@@ -93,19 +108,17 @@ export class UsersService {
         parent_name,
         phone_number,
         email,
-        current_skill_level,
         player_positions,
         custom_position,
         photoUrl,
         NationalIdCard,
-        policy,
       } = createUserDto;
 
       // Convert numeric values
       const numericHeight = Number(height) || 0;
       const numericWeight = Number(weight) || 0;
 
-      // Validate base64 images if provided
+      // Validate base64 image formats
       if (photoUrl && !this.isValidBase64Image(photoUrl)) {
         throw new BadRequestException(
           'Invalid profile photo format. Must be a valid base64 image',
@@ -118,7 +131,19 @@ export class UsersService {
         );
       }
 
-      // Create user object including base64 images
+      // Upload images to Supabase and get URLs
+      let uploadedPhotoUrl = '';
+      let uploadedIdCardUrl = '';
+
+      if (photoUrl) {
+        uploadedPhotoUrl = await this.uploadBase64ToSupabase(photoUrl);
+      }
+
+      if (NationalIdCard) {
+        uploadedIdCardUrl = await this.uploadBase64ToSupabase(NationalIdCard);
+      }
+
+      // Create user object with uploaded image URLs
       const newUser = {
         fullname,
         gender,
@@ -139,23 +164,17 @@ export class UsersService {
         tShirtSize,
         activePlan,
         experienceLevel,
-        current_skill_level,
         player_positions,
         custom_position,
-        photoUrl: photoUrl || '',
-        NationalIdCard: NationalIdCard || '',
-        policy: policy || true,
+        photoUrl: uploadedPhotoUrl || '',
+        NationalIdCard: uploadedIdCardUrl || '',
+        policy: true,
       };
 
-      // Save user with base64 images directly in the database
+      // Save user
       const savedUser = await this.userRepository.save(newUser);
-      console.log('User saved with ID:', savedUser.id);
-      console.log('Profile photo saved:', savedUser.photoUrl ? 'Yes' : 'No');
-      console.log(
-        'National ID card saved:',
-        savedUser.NationalIdCard ? 'Yes' : 'No',
-      );
 
+      console.log('User saved with ID:', savedUser.id);
       return savedUser;
     } catch (error) {
       console.error('Error creating user with base64 photos:', error);
@@ -232,30 +251,32 @@ export class UsersService {
     return urlData.publicUrl;
   }
 
-  private async uploadBase64ToSupabase(base64String: string, path: string) {
-    const base64Data = base64String.split(',')[1]; // جدا کردن بخش Base64 از header
+  private async uploadBase64ToSupabase(base64String: string) {
+    const base64Data = base64String.split(',')[1];
+    const { contentType } = this.getBase64MimeType(base64String);
+
+    const randomNumber = generateSevenDigitRandomNumber();
 
     const { error } = await this.supabase.storage
-      .from('your-bucket-name') // نام باکت
-      .upload(path, Buffer.from(base64Data, 'base64'), {
-        contentType: 'image/jpeg', // یا نوع فایل مورد نظر شما
-        upsert: true, // اگر فایل قبلاً وجود داشت، آن را بروزرسانی می‌کند
+      .from('user')
+      .upload(`image-${randomNumber}`, Buffer.from(base64Data, 'base64'), {
+        contentType,
+        upsert: true,
       });
 
     if (error) {
       throw new Error('Failed to upload image to Supabase Storage');
     }
 
-    // دریافت URL فایل پس از آپلود
-    const { publicURL, error: urlError } = this.supabase.storage
-      .from('your-bucket-name')
-      .getPublicUrl(path);
+    const { data, error: urlError } = this.supabase.storage
+      .from('user')
+      .getPublicUrl(`image-${randomNumber}`);
 
     if (urlError) {
       throw new Error('Failed to generate public URL');
     }
 
-    return publicURL;
+    return data.publicUrl;
   }
 
   // Keeping the old method for backward compatibility
@@ -292,7 +313,6 @@ export class UsersService {
         parent_name,
         phone_number,
         email,
-        current_skill_level,
         player_positions,
         custom_position,
       } = createUserDto;
@@ -322,7 +342,6 @@ export class UsersService {
         tShirtSize,
         activePlan,
         experienceLevel,
-        current_skill_level,
         player_positions,
         custom_position,
         photoUrl: '', // Will be updated if file exists

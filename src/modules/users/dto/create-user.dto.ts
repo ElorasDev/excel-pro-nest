@@ -9,7 +9,6 @@ import {
 } from 'class-validator';
 import {
   Gender,
-  SkillLevel,
   PlayerPosition,
   TShirtSize,
   ExperienceLevel,
@@ -175,14 +174,6 @@ export class CreateUserDto {
   @IsNotEmpty()
   @IsString()
   email: string;
-
-  @ApiProperty({
-    enum: SkillLevel,
-    description: 'Current skill level of the user',
-  })
-  @IsNotEmpty()
-  @IsEnum(SkillLevel)
-  current_skill_level: SkillLevel;
 
   @ApiProperty({
     enum: PlayerPosition,
