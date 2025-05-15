@@ -308,31 +308,37 @@ export class TransferService {
       relations: ['user'],
     });
 
-    // Update status to EXPIRED and notify users
     for (const transfer of expiredTransfers) {
-      transfer.status = TransferStatus.EXPIRED;
-      await this.transferRepository.save(transfer);
+      try {
+        transfer.status = TransferStatus.EXPIRED;
+        await this.transferRepository.save(transfer);
 
-      // Send expiry notification via SMS
-      await this.notificationsService.sendTransferExpiryNotification(
-        transfer.user.phone_number,
-        transfer.amount,
-        transfer.plan,
-      );
+        await this.notificationsService.sendTransferExpiryNotification(
+          transfer.user.phone_number,
+          transfer.amount,
+          transfer.plan,
+        );
+      } catch (err) {
+        console.error(
+          `❌ Error processing expired transfer ID: ${transfer.id} –`,
+          err.message,
+        );
+      }
 
-      // Cleanup logic - delete temporary users if this was their first payment
+      // Cleanup: Delete temp user if it was first-time payment
       if (transfer.isFirstTimePayment && transfer.user.isTemporary) {
         try {
           await this.userRepository.remove(transfer.user);
-          // Remove sensitive log containing user ID
-        } catch {
-          console.error('Error deleting temporary user');
+        } catch (err) {
+          console.error(
+            `❌ Error deleting temporary user ID: ${transfer.user.id} –`,
+            err.message,
+          );
         }
       }
     }
 
-    // Reminder logic for subscription renewals
-    // 1. Users with subscriptions expiring in 2 days
+    // Users with subscriptions expiring in 2 days
     const twoDaysFromNow = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);
     const oneDayWindowStart = new Date(
       twoDaysFromNow.getTime() - 24 * 60 * 60 * 1000,
@@ -346,14 +352,21 @@ export class TransferService {
     });
 
     for (const user of usersExpiringSoon) {
-      await this.notificationsService.sendSubscriptionRenewalReminder(
-        user.phone_number,
-        user.activePlan,
-        user.currentSubscriptionEndDate,
-      );
+      try {
+        await this.notificationsService.sendSubscriptionRenewalReminder(
+          user.phone_number,
+          user.activePlan,
+          user.currentSubscriptionEndDate,
+        );
+      } catch (err) {
+        console.error(
+          `❌ Error sending renewal reminder to user ID: ${user.id} –`,
+          err.message,
+        );
+      }
     }
 
-    // 2. Users with expired subscriptions (within 10 days post-expiry)
+    // Users with expired subscriptions (within 10 days)
     const tenDaysAgo = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000);
     const usersWithExpiredSubscriptions = await this.userRepository.find({
       where: {
@@ -368,13 +381,19 @@ export class TransferService {
           (24 * 60 * 60 * 1000),
       );
 
-      // Send reminder every 2 days (e.g., day 0, 2, 4, 6, 8, 10)
       if (daysSinceExpiry % 2 === 0) {
-        await this.notificationsService.sendPostExpiryRenewalReminder(
-          user.phone_number,
-          user.activePlan,
-          user.currentSubscriptionEndDate,
-        );
+        try {
+          await this.notificationsService.sendPostExpiryRenewalReminder(
+            user.phone_number,
+            user.activePlan,
+            user.currentSubscriptionEndDate,
+          );
+        } catch (err) {
+          console.error(
+            `❌ Error sending post-expiry reminder to user ID: ${user.id} –`,
+            err.message,
+          );
+        }
       }
     }
   }
