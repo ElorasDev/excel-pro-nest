@@ -318,6 +318,7 @@ export class TransferService {
           transfer.amount,
           transfer.plan,
         );
+        await new Promise((r) => setTimeout(r, 1000));
       } catch (err) {
         console.error(
           `❌ Error processing expired transfer ID: ${transfer.id} –`,
@@ -358,6 +359,7 @@ export class TransferService {
           user.activePlan,
           user.currentSubscriptionEndDate,
         );
+        await new Promise((r) => setTimeout(r, 1000));
       } catch (err) {
         console.error(
           `❌ Error sending renewal reminder to user ID: ${user.id} –`,
@@ -388,6 +390,7 @@ export class TransferService {
             user.activePlan,
             user.currentSubscriptionEndDate,
           );
+          await new Promise((r) => setTimeout(r, 1000));
         } catch (err) {
           console.error(
             `❌ Error sending post-expiry reminder to user ID: ${user.id} –`,
