@@ -13,7 +13,6 @@ import { TransferService } from './transfer.service';
 import { VerifyTransferDto } from './dto/verify-transfer.dto';
 import { TransferStatus } from './entities/enums/transfer-status.enum';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateTransferDto } from './dto/create-transfer.dto';
 
 @Controller('transfer')
@@ -72,19 +71,14 @@ export class TransferController {
     );
   }
 
-  @Post('cron/subscription-reminders')
-  @ApiOperation({ summary: 'Run subscription reminder job' })
-  @ApiResponse({
-    status: 200,
-    description: 'Subscription reminders processed successfully',
-  })
-  async runSubscriptionReminders() {
-    console.log('Cron job started at', new Date().toISOString());
+  @Get('cron/subscription-reminders')
+  async runSubscriptionRemindersViaGet() {
+    console.log('GET Cron job started at', new Date().toISOString());
     await this.transferService.handleExpiredTransfers();
-    console.log('Cron job finished at', new Date().toISOString());
+    console.log('GET Cron job finished at', new Date().toISOString());
     return {
       success: true,
-      message: 'Subscription reminders processed successfully ',
+      message: 'Subscription reminders processed successfully (GET)',
     };
   }
 }
