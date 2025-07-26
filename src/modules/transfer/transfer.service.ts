@@ -295,7 +295,7 @@ export class TransferService {
   }
 
   // Scheduled job to expire pending transfers
-  @Cron(CronExpression.EVERY_DAY_AT_10AM)
+  @Cron(CronExpression.EVERY_DAY_AT_3PM)
   async handleExpiredTransfers() {
     const now = new Date();
 
