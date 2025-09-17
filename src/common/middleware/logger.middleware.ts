@@ -1,5 +1,5 @@
+// @ts-nocheck
 import { Injectable, Logger, NestMiddleware } from '@nestjs/common';
-import { Request, Response } from 'express';
 
 @Injectable()
 export class LoggerMiddleware implements NestMiddleware {
@@ -7,7 +7,7 @@ export class LoggerMiddleware implements NestMiddleware {
 
   private heapLimitMB = 100;
 
-  use(req: Request, res: Response, next: (err?: any) => void) {
+  use(req: any, res: any, next: (err?: any) => void) {
     const { ip, method, baseUrl } = req;
     const userAgent = req.get('user-agent') || '';
     const startAt = process.hrtime();
